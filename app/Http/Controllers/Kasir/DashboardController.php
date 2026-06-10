@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Kios;
 use App\Models\Product;
 use App\Models\Shift;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class DashboardController extends Controller

@@ -1,7 +1,7 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function Dashboard({ auth, products, kiosList, shifts, activeSession }) {
+export default function Dashboard({ auth, products, kiosList, shifts, activeSession, flash }) {
     const [cart, setCart] = useState([]);
     const [search, setSearch] = useState('');
     const [activeCategory, setActiveCategory] = useState('Semua');
@@ -62,12 +62,43 @@ export default function Dashboard({ auth, products, kiosList, shifts, activeSess
         });
     };
 
+    const processTransaction = () => {
+    if (cart.length === 0) return;
+
+    const paid = parseInt(paidAmount.replace(/\D/g, '')) || 0;
+
+    if (paymentMethod === 'cash' && paid < subtotal) {
+        alert('Uang pembayaran kurang!');
+        return;
+    }
+
+    router.post(route('kasir.transaction.store'), {
+        items: cart.map(i => ({
+            id:    i.id,
+            qty:   i.qty,
+            price: i.price,
+        })),
+        paid_amount:    paid,
+        payment_method: paymentMethod,
+    }, {
+        onSuccess: () => {
+            setCart([]);
+            setPaidAmount('');
+        },
+    });
+};
+
     // Logout
     const logout = () => router.post(route('logout'));
 
     return (
         <>
             <Head title="Kasir - Nicky Frozen" />
+            {flash?.success && (
+    <div className="fixed bottom-6 right-6 bg-green-600 text-white px-5 py-3 rounded-xl shadow-lg z-50 flex items-center gap-2">
+        ✅ {flash.success}
+    </div>
+)}
             <div className="min-h-screen bg-[#0d1117] text-white flex flex-col">
 
                 {/* Navbar */}
@@ -267,6 +298,7 @@ export default function Dashboard({ auth, products, kiosList, shifts, activeSess
 
                             {/* Tombol Proses */}
                             <button
+                            onClick={processTransaction}
                                 disabled={cart.length === 0}
                                 className="w-full bg-green-600 hover:bg-green-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition flex items-center justify-center gap-2"
                             >

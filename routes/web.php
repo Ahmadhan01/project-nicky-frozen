@@ -23,6 +23,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 Route::middleware(['auth', 'role:admin,kasir'])->prefix('kasir')->name('kasir.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Kasir\DashboardController::class, 'index'])->name('dashboard');
     Route::post('/session/start', [\App\Http\Controllers\Kasir\DashboardController::class, 'startSession'])->name('session.start');
+    Route::post('/transaction', [\App\Http\Controllers\Kasir\TransactionController::class, 'store'])->name('transaction.store'); // ← tambah ini
 });
 
 require __DIR__.'/auth.php';
