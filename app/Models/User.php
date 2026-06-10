@@ -29,4 +29,15 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function kasirSessions()
+{
+    return $this->hasMany(KasirSession::class);
+}
+
+// Helper: cek apakah kasir punya sesi aktif
+public function activeSession()
+{
+    return $this->kasirSessions()->where('status', 'active')->latest()->first();
+}
 }

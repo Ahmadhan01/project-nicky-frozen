@@ -47,4 +47,9 @@ class Transaction extends Model
 
         return "INV-{$date}-{$counter}";
     }
+
+    public function kasirSession()
+{
+    return $this->belongsTo(KasirSession::class);
+}
 }
