@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\KasirSession;
 
 class Transaction extends Model
 {
@@ -11,6 +12,7 @@ class Transaction extends Model
 
     protected $fillable = [
         'user_id',
+        'kasir_session_id', 
         'invoice_number',
         'total_amount',
         'paid_amount',

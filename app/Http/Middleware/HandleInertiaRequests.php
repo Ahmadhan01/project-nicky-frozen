@@ -36,7 +36,8 @@ class HandleInertiaRequests extends Middleware
         ],
         'flash' => [                                    // ← tambah ini
             'success' => session('success'),            // ← tambah ini
-            'error'   => session('error'),              // ← tambah ini
+            'error'   => session('error'),   
+            'transaction' => session('transaction'),           // ← tambah ini
         ],                                              // ← tambah ini
     ];
 }

@@ -1,5 +1,5 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Dashboard({ auth, products, kiosList, shifts, activeSession, flash }) {
     const [cart, setCart] = useState([]);
@@ -10,6 +10,14 @@ export default function Dashboard({ auth, products, kiosList, shifts, activeSess
     const [showSessionModal, setShowSessionModal] = useState(!activeSession);
     const [selectedKios, setSelectedKios] = useState(null);
     const [selectedShift, setSelectedShift] = useState(null);
+    const [receiptData, setReceiptData] = useState(null);
+
+    // Tampilkan struk otomatis setelah transaksi berhasil
+useEffect(() => {
+    if (flash?.transaction) {
+        setReceiptData(flash.transaction);
+    }
+}, [flash]);
 
     // Ambil kategori unik dari produk
     const categories = ['Semua', ...new Set(products.map(p => p.category?.name).filter(Boolean))];
@@ -73,19 +81,22 @@ export default function Dashboard({ auth, products, kiosList, shifts, activeSess
     }
 
     router.post(route('kasir.transaction.store'), {
-        items: cart.map(i => ({
-            id:    i.id,
-            qty:   i.qty,
-            price: i.price,
-        })),
-        paid_amount:    paid,
-        payment_method: paymentMethod,
-    }, {
-        onSuccess: () => {
-            setCart([]);
-            setPaidAmount('');
-        },
-    });
+    items: cart.map(i => ({
+        id:    i.id,
+        qty:   i.qty,
+        price: i.price,
+    })),
+    paid_amount:    paid,
+    payment_method: paymentMethod,
+}, {
+    onSuccess: (page) => {
+        setCart([]);
+        setPaidAmount('');
+        if (page.props.flash?.transaction) {
+            setReceiptData(page.props.flash.transaction);
+        }
+    },
+});
 };
 
     // Logout
@@ -114,9 +125,12 @@ export default function Dashboard({ auth, products, kiosList, shifts, activeSess
                         <button className="bg-[#1f2937] px-4 py-2 rounded-lg text-sm flex items-center gap-2 text-cyan-400">
                             🛒 Kasir
                         </button>
-                        <button className="px-4 py-2 rounded-lg text-sm flex items-center gap-2 text-gray-400 hover:text-white">
-                            📋 Riwayat
-                        </button>
+                        <button
+    onClick={() => router.visit(route('kasir.history'))}
+    className="px-4 py-2 rounded-lg text-sm flex items-center gap-2 text-gray-400 hover:text-white"
+>
+    📋 Riwayat
+</button>
                     </div>
                     <div className="flex items-center gap-3">
                         <span className="bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">● Online</span>
@@ -379,6 +393,110 @@ export default function Dashboard({ auth, products, kiosList, shifts, activeSess
                         </div>
                     </div>
                 )}
+                {/* Modal Struk */}
+{receiptData && (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div className="bg-[#161b22] rounded-2xl w-full max-w-lg border border-gray-700 shadow-2xl">
+
+            {/* Header Modal */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
+                <div className="flex items-center gap-2">
+                    <span>🧾</span>
+                    <span className="font-bold">Struk Pembayaran</span>
+                </div>
+                <button
+                    onClick={() => setReceiptData(null)}
+                    className="text-gray-400 hover:text-white text-xl"
+                >✕</button>
+            </div>
+
+            {/* Isi Struk */}
+            <div className="p-6">
+
+                {/* Header Toko */}
+                <div className="text-center mb-4">
+                    <div className="bg-[#0d1117] w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2">
+                        <span className="text-2xl">🧾</span>
+                    </div>
+                    <p className="font-bold text-white">NICKY FROZEN</p>
+                    <p className="text-xs text-gray-400">
+                        {receiptData.kasir_session?.kios?.name} | {receiptData.kasir_session?.shift?.name}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                        {new Date(receiptData.created_at).toLocaleString('id-ID', {
+                            day: 'numeric', month: 'short', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit'
+                        })}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">No: {receiptData.invoice_number}</p>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-dashed border-gray-600 my-3" />
+
+                {/* Items */}
+                <div className="space-y-3 mb-3">
+                    {receiptData.items?.map((item, i) => (
+                        <div key={i} className="flex justify-between items-start">
+                            <div className="flex items-center gap-2">
+                                <div className="bg-[#0d1117] p-1.5 rounded">
+                                    <span className="text-sm">🍱</span>
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium">{item.product?.name}</p>
+                                    <p className="text-xs text-gray-400">{item.quantity} x {formatRp(item.price)}</p>
+                                </div>
+                            </div>
+                            <span className="text-sm font-medium">{formatRp(item.subtotal)}</span>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-dashed border-gray-600 my-3" />
+
+                {/* Total */}
+                <div className="bg-[#0d1117] rounded-xl p-4 space-y-2">
+                    <div className="flex justify-between font-bold text-base">
+                        <span>TOTAL</span>
+                        <span>{formatRp(receiptData.total_amount)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-gray-400">
+                        <span>Pembayaran ({receiptData.payment_method === 'cash' ? 'Cash' : 'Non-Tunai'})</span>
+                        <span>{formatRp(receiptData.paid_amount)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-semibold text-cyan-400">
+                        <span>Kembalian</span>
+                        <span>{formatRp(receiptData.change_amount)}</span>
+                    </div>
+                </div>
+
+                {/* Footer */}
+                <div className="text-center mt-4 space-y-1">
+                    <p className="text-xs text-gray-400">Kasir: {receiptData.user?.name}</p>
+                    <p className="text-xs text-gray-500">✨ Terima kasih telah berbelanja! ✨</p>
+                    <p className="text-xs text-gray-500">Simpan struk ini sebagai bukti pembelian.</p>
+                </div>
+            </div>
+
+            {/* Tombol */}
+            <div className="flex gap-3 px-6 pb-6">
+                <button
+                    onClick={() => setReceiptData(null)}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-600 text-sm font-semibold hover:bg-gray-800 transition"
+                >
+                    Tutup
+                </button>
+                <button
+                    onClick={() => window.print()}
+                    className="flex-1 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-semibold transition flex items-center justify-center gap-2"
+                >
+                    🖨️ Cetak
+                </button>
+            </div>
+        </div>
+    </div>
+)}
             </div>
         </>
     );
