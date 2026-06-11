@@ -24,6 +24,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/products/{product}', [\App\Http\Controllers\Admin\ProductController::class, 'destroy'])->name('products.destroy');
     Route::get('/history', [\App\Http\Controllers\Admin\HistoryController::class, 'index'])->name('history');
     Route::get('/recap', [\App\Http\Controllers\Admin\RecapController::class, 'index'])->name('recap');
+    Route::get('/audit', [\App\Http\Controllers\Admin\AuditController::class, 'index'])->name('audit');
 });
 
 // Route khusus Kasir (Admin juga boleh akses)

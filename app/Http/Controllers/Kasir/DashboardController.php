@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Shift;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\AuditLog;
 
 class DashboardController extends Controller
 {
@@ -38,6 +39,15 @@ class DashboardController extends Controller
         'started_at' => now(),
         'status'     => 'active',
     ]);
+
+    $kios  = \App\Models\Kios::find($request->kios_id);
+$shift = \App\Models\Shift::find($request->shift_id);
+
+AuditLog::record(
+    'session',
+    "Sesi dimulai: {$kios->name} {$shift->name}",
+    ['kios_id' => $request->kios_id, 'shift_id' => $request->shift_id]
+);
 
     return redirect()->route('kasir.dashboard');
 }

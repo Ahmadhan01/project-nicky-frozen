@@ -8,6 +8,7 @@ use App\Models\Transaction;
 use App\Models\TransactionItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\AuditLog;
 
 class TransactionController extends Controller
 {
@@ -54,6 +55,12 @@ class TransactionController extends Controller
 
             Product::where('id', $item['id'])->decrement('stock', $item['qty']);
         }
+
+        AuditLog::record(
+    'transaction',
+    "Transaksi {$transaction->invoice_number} sebesar Rp " . number_format($total, 0, ',', '.'),
+    ['invoice' => $transaction->invoice_number, 'total' => $total]
+);
 
         return $transaction;
     });
