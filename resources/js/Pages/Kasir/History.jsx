@@ -1,11 +1,18 @@
 import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function History({ auth, transactions, kiosList, shifts }) {
     const [selectedTransaction, setSelectedTransaction] = useState(null);
     const [filterKios, setFilterKios] = useState('');
     const [filterShift, setFilterShift] = useState('');
     const [filterMethod, setFilterMethod] = useState('');
+
+const [time, setTime] = useState(new Date());
+
+useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+}, []);
 
     const formatRp = (val) => 'Rp ' + Number(val).toLocaleString('id-ID');
     const formatDate = (val) => new Date(val).toLocaleString('id-ID', {
@@ -20,6 +27,8 @@ export default function History({ auth, transactions, kiosList, shifts }) {
             payment_method: filterMethod,
         }, { preserveState: true });
     };
+
+    
 
     const logout = () => router.post(route('logout'));
 
@@ -51,8 +60,8 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                     <div className="flex items-center gap-3">
                         <span className="bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">● Online</span>
                         <span className="text-sm text-gray-300">
-                            {new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+    {time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+</span>
                         <div className="flex items-center gap-2 cursor-pointer" onClick={logout}>
                             <div className="w-7 h-7 bg-cyan-500 rounded-full flex items-center justify-center text-xs font-bold">
                                 {auth.user.name.charAt(0).toUpperCase()}

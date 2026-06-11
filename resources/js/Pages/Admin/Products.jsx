@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Products({ auth, products, categories, flash }) {
     const [search, setSearch] = useState('');
@@ -53,6 +53,13 @@ export default function Products({ auth, products, categories, flash }) {
         });
     };
 
+    const [time, setTime] = useState(new Date());
+
+useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+}, []);
+
     const applyFilter = () => {
         router.get(route('admin.products'), {
             search,
@@ -91,7 +98,9 @@ export default function Products({ auth, products, categories, flash }) {
                     </div>
                     <div className="flex items-center gap-3">
                         <span className="bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">● Online</span>
-                        <span className="text-sm text-gray-300">{new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span className="text-sm text-gray-300">
+    {time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+</span>
                         <div className="flex items-center gap-2 cursor-pointer" onClick={logout}>
                             <div className="w-7 h-7 bg-cyan-500 rounded-full flex items-center justify-center text-xs font-bold">
                                 {auth.user.name.charAt(0).toUpperCase()}

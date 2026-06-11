@@ -135,6 +135,13 @@ const syncOfflineQueue = useCallback(async () => {
     }
 }, []);
 
+const [time, setTime] = useState(new Date());
+
+useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+}, []);
+
 // Proses transaksi
 const processTransaction = () => {
     if (cart.length === 0) return;
@@ -255,7 +262,9 @@ const logout = () => router.post(route('logout'));
 }`}>
     ● {isOnline ? 'Online' : 'Offline'}
 </span>
-                        <span className="text-sm text-gray-300">{new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span className="text-sm text-gray-300">
+    {time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+</span>
                         <div className="flex items-center gap-2 cursor-pointer" onClick={logout}>
                             <div className="w-7 h-7 bg-cyan-500 rounded-full flex items-center justify-center text-xs font-bold">
                                 {auth.user.name.charAt(0).toUpperCase()}

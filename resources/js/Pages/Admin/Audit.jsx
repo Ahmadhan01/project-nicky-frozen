@@ -1,4 +1,5 @@
 import { Head, router } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
 
 export default function Audit({ auth, logs }) {
     const formatDate = (val) => new Date(val).toLocaleString('id-ID', {
@@ -14,6 +15,13 @@ export default function Audit({ auth, logs }) {
             default:            return { icon: '📋', bg: 'bg-gray-800',      color: 'text-gray-400'  };
         }
     };
+
+const [time, setTime] = useState(new Date());
+
+useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+}, []);
 
     const logout = () => router.post(route('logout'));
 
@@ -40,7 +48,9 @@ export default function Audit({ auth, logs }) {
                     </div>
                     <div className="flex items-center gap-3">
                         <span className="bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">● Online</span>
-                        <span className="text-sm text-gray-300">{new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span className="text-sm text-gray-300">
+    {time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+</span>
                         <div className="flex items-center gap-2 cursor-pointer" onClick={logout}>
                             <div className="w-7 h-7 bg-cyan-500 rounded-full flex items-center justify-center text-xs font-bold">
                                 {auth.user.name.charAt(0).toUpperCase()}
