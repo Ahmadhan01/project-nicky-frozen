@@ -156,4 +156,30 @@ public function sync(Request $request)
 
     return response()->json(['synced' => $synced]);
 }
+
+public function cancel(Transaction $transaction)
+{
+    if ($transaction->status === 'cancelled') {
+        return back()->withErrors(['error' => 'Transaksi sudah dibatalkan.']);
+    }
+
+    DB::transaction(function () use ($transaction) {
+        // Kembalikan stok produk
+        foreach ($transaction->items as $item) {
+            Product::where('id', $item->product_id)->increment('stock', $item->quantity);
+        }
+
+        // Update status transaksi
+        $transaction->update(['status' => 'cancelled']);
+
+        // Catat di audit log
+        AuditLog::record(
+            'transaction',
+            "Transaksi {$transaction->invoice_number} dibatalkan — stok dikembalikan",
+            ['invoice' => $transaction->invoice_number]
+        );
+    });
+
+    return back()->with('success', 'Transaksi berhasil dibatalkan dan stok dikembalikan!');
+}
 }

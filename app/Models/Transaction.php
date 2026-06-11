@@ -27,6 +27,7 @@ class Transaction extends Model
         'total_amount'  => 'decimal:2',
         'paid_amount'   => 'decimal:2',
         'change_amount' => 'decimal:2',
+        'is_offline_sync'  => 'boolean',
     ];
 
     // Relasi: transaksi milik satu kasir

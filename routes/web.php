@@ -25,6 +25,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/history', [\App\Http\Controllers\Admin\HistoryController::class, 'index'])->name('history');
     Route::get('/recap', [\App\Http\Controllers\Admin\RecapController::class, 'index'])->name('recap');
     Route::get('/audit', [\App\Http\Controllers\Admin\AuditController::class, 'index'])->name('audit');
+    Route::patch('/transaction/{transaction}/cancel', [\App\Http\Controllers\Kasir\TransactionController::class, 'cancel'])->name('transaction.cancel');
 });
 
 // Route khusus Kasir (Admin juga boleh akses)
@@ -35,6 +36,7 @@ Route::middleware(['auth', 'role:admin,kasir'])->prefix('kasir')->name('kasir.')
     Route::get('/receipt/{transaction}', [\App\Http\Controllers\Kasir\ReceiptController::class, 'show'])->name('receipt.show'); 
     Route::get('/history', [\App\Http\Controllers\Kasir\TransactionController::class, 'index'])->name('history');
     Route::post('/transaction/sync', [\App\Http\Controllers\Kasir\TransactionController::class, 'sync'])->name('transaction.sync');
+    Route::patch('/transaction/{transaction}/cancel', [\App\Http\Controllers\Kasir\TransactionController::class, 'cancel'])->name('transaction.cancel');
 });
 
 Route::get('/csrf-refresh', function () {

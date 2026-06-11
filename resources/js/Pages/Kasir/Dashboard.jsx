@@ -139,12 +139,14 @@ const syncOfflineQueue = useCallback(async () => {
 const processTransaction = () => {
     if (cart.length === 0) return;
 
-    const paid = parseInt(paidAmount.replace(/\D/g, '')) || 0;
+    const paid = paymentMethod === 'cash'
+    ? parseInt(paidAmount.replace(/\D/g, '')) || 0
+    : subtotal;
 
-    if (paymentMethod === 'cash' && paid < subtotal) {
-        alert('Uang pembayaran kurang!');
-        return;
-    }
+if (paymentMethod === 'cash' && paid < subtotal) {
+    alert('Uang pembayaran kurang!');
+    return;
+}
 
     // Kalau offline, simpan ke localStorage
     if (!isOnline) {
@@ -414,20 +416,24 @@ const logout = () => router.post(route('logout'));
                                 </button>
                             </div>
 
-                            {/* Uang Pembayaran */}
-                            <input
-                                type="text"
-                                placeholder="Rp 0"
-                                value={paidAmount}
-                                onChange={e => setPaidAmount(e.target.value)}
-                                className="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-500 text-white"
-                            />
-
-                            {/* Kembalian */}
-                            <div className="flex justify-between text-sm text-gray-400">
-                                <span>Kembalian</span>
-                                <span className={change < 0 ? 'text-red-400' : 'text-white'}>{formatRp(Math.max(0, change))}</span>
-                            </div>
+                            {/* Uang Pembayaran — hanya tampil kalau Cash */}
+{paymentMethod === 'cash' && (
+    <>
+        <input
+            type="text"
+            placeholder="Rp 0"
+            value={paidAmount}
+            onChange={e => setPaidAmount(e.target.value)}
+            className="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-500 text-white"
+        />
+        <div className="flex justify-between text-sm text-gray-400">
+            <span>Kembalian</span>
+            <span className={change < 0 ? 'text-red-400' : 'text-white'}>
+                {formatRp(Math.max(0, change))}
+            </span>
+        </div>
+    </>
+)}
 
                             {/* Tombol Proses */}
                             <button

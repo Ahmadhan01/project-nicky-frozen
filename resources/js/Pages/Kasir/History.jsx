@@ -151,10 +151,12 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3">
-                                                <span className="text-green-400 text-xs flex items-center gap-1">
-                                                    ✓ Selesai
-                                                </span>
-                                            </td>
+    <span className={`text-xs flex items-center gap-1 ${
+        trx.status === 'cancelled' ? 'text-red-400' : 'text-green-400'
+    }`}>
+        {trx.status === 'cancelled' ? '✕ Dibatalkan' : '✓ Selesai'}
+    </span>
+</td>
                                             <td className="px-4 py-3">
                                                 <button
                                                     onClick={() => setSelectedTransaction(trx)}
@@ -264,15 +266,28 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                 </div>
                             </div>
 
-                            {/* Tombol */}
-                            <div className="px-6 pb-6">
-                                <button
-                                    onClick={() => setSelectedTransaction(null)}
-                                    className="w-full py-2.5 rounded-xl border border-gray-600 text-sm font-semibold hover:bg-gray-800 transition"
-                                >
-                                    Tutup
-                                </button>
-                            </div>
+                            <div className="flex gap-3 px-6 pb-6">
+    {selectedTransaction.status !== 'cancelled' && (
+        <button
+            onClick={() => {
+                if (confirm(`Batalkan transaksi ${selectedTransaction.invoice_number}? Stok akan dikembalikan.`)) {
+                    router.patch(route('kasir.transaction.cancel', selectedTransaction.id), {}, {
+                        onSuccess: () => setSelectedTransaction(null),
+                    });
+                }
+            }}
+            className="flex-1 py-2.5 rounded-xl bg-red-900/50 hover:bg-red-800 text-red-400 text-sm font-semibold transition"
+        >
+            🚫 Batalkan Transaksi
+        </button>
+    )}
+    <button
+        onClick={() => setSelectedTransaction(null)}
+        className="flex-1 py-2.5 rounded-xl border border-gray-600 text-sm font-semibold hover:bg-gray-800 transition"
+    >
+        Tutup
+    </button>
+</div>
                         </div>
                     </div>
                 )}
