@@ -9,6 +9,8 @@ export default function History({ auth, transactions, kiosList, shifts }) {
 
 const [time, setTime] = useState(new Date());
 
+const [showUserMenu, setShowUserMenu] = useState(false);
+
 useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -62,12 +64,41 @@ useEffect(() => {
                         <span className="text-sm text-gray-300">
     {time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
 </span>
-                        <div className="flex items-center gap-2 cursor-pointer" onClick={logout}>
-                            <div className="w-7 h-7 bg-cyan-500 rounded-full flex items-center justify-center text-xs font-bold">
-                                {auth.user.name.charAt(0).toUpperCase()}
-                            </div>
-                            <span className="text-sm">{auth.user.name} ▾</span>
-                        </div>
+                        <div className="relative">
+    <button
+        onClick={() => setShowUserMenu(prev => !prev)}
+        className="flex items-center gap-2 hover:opacity-80 transition"
+    >
+        <div className="w-7 h-7 bg-cyan-500 rounded-full flex items-center justify-center text-xs font-bold">
+            {auth.user.name.charAt(0).toUpperCase()}
+        </div>
+        <span className="text-sm">{auth.user.name} ▾</span>
+    </button>
+
+    {showUserMenu && (
+        <>
+            {/* Backdrop */}
+            <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
+
+            {/* Dropdown */}
+            <div className="absolute right-0 mt-2 w-48 bg-[#161b22] border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-700">
+                    <p className="text-sm font-semibold text-white">{auth.user.name}</p>
+                    <p className="text-xs text-gray-400">{auth.user.email}</p>
+                    <span className="text-xs bg-cyan-900/50 text-cyan-400 px-2 py-0.5 rounded-full mt-1 inline-block capitalize">
+                        {auth.user.role}
+                    </span>
+                </div>
+                <button
+                    onClick={logout}
+                    className="w-full px-4 py-3 text-left text-sm text-red-400 hover:bg-red-900/30 transition flex items-center gap-2"
+                >
+                    🚪 Logout
+                </button>
+            </div>
+        </>
+    )}
+</div>
                     </div>
                 </nav>
 

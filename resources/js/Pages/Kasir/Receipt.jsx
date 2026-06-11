@@ -10,6 +10,7 @@ export default function Receipt({ transaction }) {
     const handlePrint = () => window.print();
     const handleBack = () => router.visit(route('kasir.dashboard'));
 
+
     return (
         <>
             <Head title="Struk Transaksi" />
