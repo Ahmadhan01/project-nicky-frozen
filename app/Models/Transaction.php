@@ -19,6 +19,7 @@ class Transaction extends Model
         'change_amount',
         'payment_method',
         'status',
+        'is_offline_sync',
         'notes',
     ];
 

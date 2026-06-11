@@ -34,6 +34,11 @@ Route::middleware(['auth', 'role:admin,kasir'])->prefix('kasir')->name('kasir.')
     Route::post('/transaction', [\App\Http\Controllers\Kasir\TransactionController::class, 'store'])->name('transaction.store');
     Route::get('/receipt/{transaction}', [\App\Http\Controllers\Kasir\ReceiptController::class, 'show'])->name('receipt.show'); 
     Route::get('/history', [\App\Http\Controllers\Kasir\TransactionController::class, 'index'])->name('history');
+    Route::post('/transaction/sync', [\App\Http\Controllers\Kasir\TransactionController::class, 'sync'])->name('transaction.sync');
 });
+
+Route::get('/csrf-refresh', function () {
+    return response()->json(['token' => csrf_token()]);
+})->middleware('web');
 
 require __DIR__.'/auth.php';

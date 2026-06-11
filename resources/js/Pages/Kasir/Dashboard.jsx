@@ -1,5 +1,5 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback} from 'react';
 
 export default function Dashboard({ auth, products, kiosList, shifts, activeSession, flash }) {
     const [cart, setCart] = useState([]);
@@ -11,6 +11,13 @@ export default function Dashboard({ auth, products, kiosList, shifts, activeSess
     const [selectedKios, setSelectedKios] = useState(null);
     const [selectedShift, setSelectedShift] = useState(null);
     const [receiptData, setReceiptData] = useState(null);
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
+const [offlineQueue, setOfflineQueue] = useState(() => {
+    const saved = localStorage.getItem('nicky_offline_queue');
+    return saved ? JSON.parse(saved) : [];
+});
+const [isSyncing, setIsSyncing] = useState(false);
+const [showOfflineToast, setShowOfflineToast] = useState(false);
 
     // Tampilkan struk otomatis setelah transaksi berhasil
 useEffect(() => {
@@ -18,6 +25,32 @@ useEffect(() => {
         setReceiptData(flash.transaction);
     }
 }, [flash]);
+
+// Deteksi online/offline
+useEffect(() => {
+    const handleOnline = () => {
+        setIsOnline(true);
+    };
+    const handleOffline = () => {
+        setIsOnline(false);
+        setShowOfflineToast(true);
+        setTimeout(() => setShowOfflineToast(false), 5000);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+    };
+}, []);
+
+useEffect(() => {
+    if (isOnline) {
+        syncOfflineQueue();
+    }
+}, [isOnline]);
 
     // Ambil kategori unik dari produk
     const categories = ['Semua', ...new Set(products.map(p => p.category?.name).filter(Boolean))];
@@ -59,18 +92,51 @@ useEffect(() => {
     // Format rupiah
     const formatRp = (val) => 'Rp ' + Number(val).toLocaleString('id-ID');
 
-    // Mulai sesi
-    const startSession = () => {
-        if (!selectedKios || !selectedShift) return;
-        router.post(route('kasir.session.start'), {
-            kios_id: selectedKios,
-            shift_id: selectedShift,
-        }, {
-            onSuccess: () => setShowSessionModal(false),
-        });
-    };
+// Mulai sesi
+const startSession = () => {
+    if (!selectedKios || !selectedShift) return;
+    router.post(route('kasir.session.start'), {
+        kios_id: selectedKios,
+        shift_id: selectedShift,
+    }, {
+        onSuccess: () => setShowSessionModal(false),
+    });
+};
 
-    const processTransaction = () => {
+// Sync offline queue
+const syncOfflineQueue = useCallback(async () => {
+    const queue = JSON.parse(localStorage.getItem('nicky_offline_queue') || '[]');
+    if (queue.length === 0) return;
+
+    setIsSyncing(true);
+    try {
+        const csrfResponse = await fetch('/csrf-refresh');
+        const csrfData = await csrfResponse.json();
+        const csrfToken = csrfData.token;
+
+        const response = await fetch(route('kasir.transaction.sync'), {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+            },
+            body: JSON.stringify({ transactions: queue }),
+        });
+
+        if (response.ok) {
+            localStorage.removeItem('nicky_offline_queue');
+            setOfflineQueue([]);
+        }
+    } catch (e) {
+        console.error('Sync failed:', e);
+    } finally {
+        setIsSyncing(false);
+    }
+}, []);
+
+// Proses transaksi
+const processTransaction = () => {
     if (cart.length === 0) return;
 
     const paid = parseInt(paidAmount.replace(/\D/g, '')) || 0;
@@ -80,31 +146,80 @@ useEffect(() => {
         return;
     }
 
-    router.post(route('kasir.transaction.store'), {
-    items: cart.map(i => ({
-        id:    i.id,
-        qty:   i.qty,
-        price: i.price,
-    })),
-    paid_amount:    paid,
-    payment_method: paymentMethod,
-}, {
-    onSuccess: (page) => {
+    // Kalau offline, simpan ke localStorage
+    if (!isOnline) {
+        const offlineId = 'offline_' + Date.now();
+        const newTransaction = {
+            offline_id:     offlineId,
+            items:          cart.map(i => ({ id: i.id, qty: i.qty, price: i.price })),
+            paid_amount:    paid,
+            payment_method: paymentMethod,
+        };
+
+        const updatedQueue = [...offlineQueue, newTransaction];
+        localStorage.setItem('nicky_offline_queue', JSON.stringify(updatedQueue));
+        setOfflineQueue(updatedQueue);
         setCart([]);
         setPaidAmount('');
-        if (page.props.flash?.transaction) {
-            setReceiptData(page.props.flash.transaction);
-        }
-    },
-});
+        alert(`Transaksi disimpan offline! Total tersimpan: ${updatedQueue.length} transaksi.`);
+        return;
+    }
+
+    // Online — proses normal
+    router.post(route('kasir.transaction.store'), {
+        items: cart.map(i => ({
+            id:    i.id,
+            qty:   i.qty,
+            price: i.price,
+        })),
+        paid_amount:    paid,
+        payment_method: paymentMethod,
+    }, {
+        onSuccess: (page) => {
+            setCart([]);
+            setPaidAmount('');
+            if (page.props.flash?.transaction) {
+                setReceiptData(page.props.flash.transaction);
+            }
+        },
+    });
 };
 
-    // Logout
-    const logout = () => router.post(route('logout'));
+// Logout
+const logout = () => router.post(route('logout'));
 
     return (
         <>
             <Head title="Kasir - Nicky Frozen" />
+            {/* Banner Offline */}
+{!isOnline && (
+    <div className="bg-yellow-900/80 border-b border-yellow-700 px-6 py-3 flex items-center gap-3 text-yellow-300 text-sm">
+        <span>⚠️</span>
+        <span>
+            <strong>Mode Offline Aktif.</strong> {offlineQueue.length} transaksi tersimpan lokal — data akan disinkronkan otomatis saat online kembali.
+        </span>
+    </div>
+)}
+
+{/* Banner Syncing */}
+{isSyncing && (
+    <div className="bg-blue-900/80 border-b border-blue-700 px-6 py-3 flex items-center gap-3 text-blue-300 text-sm">
+        <span>🔄</span>
+        <span><strong>Menyinkronkan {offlineQueue.length} transaksi...</strong> Mohon tunggu.</span>
+    </div>
+)}
+
+{/* Toast Offline */}
+{showOfflineToast && (
+    <div className="fixed bottom-6 right-6 bg-[#1f2937] border border-yellow-700 text-white px-5 py-4 rounded-xl shadow-lg z-50 flex items-start gap-3 max-w-sm">
+        <span className="text-yellow-400 text-xl">⚠️</span>
+        <div>
+            <p className="font-semibold text-sm">Mode Offline</p>
+            <p className="text-xs text-gray-400 mt-0.5">Transaksi akan disimpan lokal dan disinkronkan saat online.</p>
+        </div>
+        <button onClick={() => setShowOfflineToast(false)} className="text-gray-500 hover:text-white ml-2">✕</button>
+    </div>
+)}
             {flash?.success && (
     <div className="fixed bottom-6 right-6 bg-green-600 text-white px-5 py-3 rounded-xl shadow-lg z-50 flex items-center gap-2">
         ✅ {flash.success}
@@ -133,7 +248,11 @@ useEffect(() => {
 </button>
                     </div>
                     <div className="flex items-center gap-3">
-                        <span className="bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">● Online</span>
+                        <span className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
+    isOnline ? 'bg-green-900 text-green-400' : 'bg-red-900 text-red-400'
+}`}>
+    ● {isOnline ? 'Online' : 'Offline'}
+</span>
                         <span className="text-sm text-gray-300">{new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
                         <div className="flex items-center gap-2 cursor-pointer" onClick={logout}>
                             <div className="w-7 h-7 bg-cyan-500 rounded-full flex items-center justify-center text-xs font-bold">

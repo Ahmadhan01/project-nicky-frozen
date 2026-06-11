@@ -97,4 +97,63 @@ class TransactionController extends Controller
         'shifts'        => \App\Models\Shift::all(),
     ]);
 }
+
+public function sync(Request $request)
+{
+    $request->validate([
+        'transactions'                    => 'required|array',
+        'transactions.*.items'            => 'required|array',
+        'transactions.*.paid_amount'      => 'required|numeric',
+        'transactions.*.payment_method'   => 'required|in:cash,transfer,qris',
+        'transactions.*.offline_id'       => 'required|string',
+    ]);
+
+    $activeSession = auth()->user()->activeSession();
+
+    if (!$activeSession) {
+        return response()->json(['error' => 'Tidak ada sesi aktif.'], 422);
+    }
+
+    $synced = 0;
+
+    foreach ($request->transactions as $trxData) {
+        DB::transaction(function () use ($trxData, $activeSession, &$synced) {
+            $total = collect($trxData['items'])->sum(fn($i) => $i['price'] * $i['qty']);
+
+            $transaction = Transaction::create([
+                'user_id'          => auth()->id(),
+                'kasir_session_id' => $activeSession->id,
+                'invoice_number'   => Transaction::generateInvoiceNumber(),
+                'total_amount'     => $total,
+                'paid_amount'      => $trxData['paid_amount'],
+                'change_amount'    => $trxData['paid_amount'] - $total,
+                'payment_method'   => $trxData['payment_method'],
+                'status'           => 'completed',
+                'is_offline_sync'  => true,
+            ]);
+
+            foreach ($trxData['items'] as $item) {
+                TransactionItem::create([
+                    'transaction_id' => $transaction->id,
+                    'product_id'     => $item['id'],
+                    'quantity'       => $item['qty'],
+                    'price'          => $item['price'],
+                    'subtotal'       => $item['price'] * $item['qty'],
+                ]);
+
+                Product::where('id', $item['id'])->decrement('stock', $item['qty']);
+            }
+
+            AuditLog::record(
+                'transaction',
+                "Transaksi offline {$transaction->invoice_number} disinkronkan sebesar Rp " . number_format($total, 0, ',', '.'),
+                ['invoice' => $transaction->invoice_number, 'offline_id' => $trxData['offline_id']]
+            );
+
+            $synced++;
+        });
+    }
+
+    return response()->json(['synced' => $synced]);
+}
 }
