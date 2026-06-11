@@ -28,8 +28,8 @@ class AuthenticatedSessionController extends Controller
      * Handle an incoming authentication request.
      */
     public function store(LoginRequest $request): RedirectResponse
-    {
-        $request->authenticate();
+{
+    $request->authenticate();
 
     $request->session()->regenerate();
 
@@ -40,7 +40,7 @@ class AuthenticatedSessionController extends Controller
     }
 
     return redirect()->route('kasir.dashboard');
-    }
+}
 
     /**
      * Destroy an authenticated session.
