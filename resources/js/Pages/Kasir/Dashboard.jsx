@@ -199,6 +199,77 @@ if (paymentMethod === 'cash' && paid < subtotal) {
 // Logout
 const logout = () => router.post(route('logout'));
 
+const printReceipt = () => {
+    const receiptHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Struk - ${receiptData.invoice_number}</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body { font-family: 'Courier New', monospace; font-size: 12px; color: #000; background: #fff; width: 280px; margin: 0 auto; padding: 16px; }
+                .center { text-align: center; }
+                .bold { font-weight: bold; }
+                .large { font-size: 15px; }
+                .divider { border-top: 1px dashed #000; margin: 8px 0; }
+                .row { display: flex; justify-content: space-between; margin: 3px 0; }
+                .item-name { font-weight: bold; margin-top: 4px; }
+                .item-detail { color: #555; font-size: 11px; }
+                .total-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; margin: 4px 0; }
+                .footer { text-align: center; margin-top: 8px; font-size: 11px; color: #555; }
+            </style>
+        </head>
+        <body>
+            <div class="center">
+                <div class="bold large">NICKY FROZEN</div>
+                <div>${receiptData.kasir_session?.kios?.name ?? ''} | ${receiptData.kasir_session?.shift?.name ?? ''}</div>
+                <div>${new Date(receiptData.created_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                <div>No: ${receiptData.invoice_number}</div>
+            </div>
+            <div class="divider"></div>
+            ${receiptData.items?.map(item => `
+                <div>
+                    <div class="row">
+                        <span class="item-name">${item.product?.name}</span>
+                        <span class="bold">Rp ${Number(item.subtotal).toLocaleString('id-ID')}</span>
+                    </div>
+                    <div class="item-detail">${item.quantity} x Rp ${Number(item.price).toLocaleString('id-ID')}</div>
+                </div>
+            `).join('')}
+            <div class="divider"></div>
+            <div class="total-row">
+                <span>TOTAL</span>
+                <span>Rp ${Number(receiptData.total_amount).toLocaleString('id-ID')}</span>
+            </div>
+            <div class="row">
+                <span>Pembayaran (${receiptData.payment_method === 'cash' ? 'Cash' : 'Non-Tunai'})</span>
+                <span>Rp ${Number(receiptData.paid_amount).toLocaleString('id-ID')}</span>
+            </div>
+            <div class="row">
+                <span>Kembalian</span>
+                <span>Rp ${Number(receiptData.change_amount).toLocaleString('id-ID')}</span>
+            </div>
+            <div class="divider"></div>
+            <div class="footer">
+                <div>Kasir: ${receiptData.user?.name}</div>
+                <div>Terima kasih telah berbelanja!</div>
+                <div>Simpan struk ini sebagai bukti pembelian.</div>
+            </div>
+        </body>
+        </html>
+    `;
+
+    const printWindow = window.open('', '_blank', 'width=350,height=600');
+    printWindow.document.write(receiptHTML);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 300);
+};
+
     return (
         <>
             <Head title="Kasir - Nicky Frozen" />
@@ -653,11 +724,11 @@ const logout = () => router.post(route('logout'));
                     Tutup
                 </button>
                 <button
-                    onClick={() => window.print()}
-                    className="flex-1 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-semibold transition flex items-center justify-center gap-2"
-                >
-                    🖨️ Cetak
-                </button>
+    onClick={printReceipt}
+    className="flex-1 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-semibold transition flex items-center justify-center gap-2"
+>
+    🖨️ Cetak
+</button>
             </div>
         </div>
     </div>
