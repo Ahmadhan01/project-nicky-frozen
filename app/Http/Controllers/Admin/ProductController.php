@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -70,4 +71,47 @@ class ProductController extends Controller
 
         return back()->with('success', 'Produk berhasil dihapus!');
     }
+
+    public function storeCategory(Request $request)
+{
+    $request->validate([
+        'name'        => 'required|string|max:255|unique:categories,name',
+        'description' => 'nullable|string',
+    ]);
+
+    Category::create([
+        'name'        => $request->name,
+        'slug'        => Str::slug($request->name),
+        'description' => $request->description,
+    ]);
+
+    return back()->with('success', 'Kategori berhasil ditambahkan!');
+}
+
+public function updateCategory(Request $request, Category $category)
+{
+    $request->validate([
+        'name'        => 'required|string|max:255|unique:categories,name,' . $category->id,
+        'description' => 'nullable|string',
+    ]);
+
+    $category->update([
+        'name'        => $request->name,
+        'slug'        => Str::slug($request->name),
+        'description' => $request->description,
+    ]);
+
+    return back()->with('success', 'Kategori berhasil diupdate!');
+}
+
+public function destroyCategory(Category $category)
+{
+    if ($category->products()->count() > 0) {
+        return back()->withErrors(['error' => 'Kategori tidak bisa dihapus karena masih memiliki produk!']);
+    }
+
+    $category->delete();
+
+    return back()->with('success', 'Kategori berhasil dihapus!');
+}
 }

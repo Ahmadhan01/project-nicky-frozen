@@ -26,6 +26,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/recap', [\App\Http\Controllers\Admin\RecapController::class, 'index'])->name('recap');
     Route::get('/audit', [\App\Http\Controllers\Admin\AuditController::class, 'index'])->name('audit');
     Route::patch('/transaction/{transaction}/cancel', [\App\Http\Controllers\Kasir\TransactionController::class, 'cancel'])->name('transaction.cancel');
+    Route::post('/categories', [\App\Http\Controllers\Admin\ProductController::class, 'storeCategory'])->name('categories.store');
+Route::put('/categories/{category}', [\App\Http\Controllers\Admin\ProductController::class, 'updateCategory'])->name('categories.update');
+Route::delete('/categories/{category}', [\App\Http\Controllers\Admin\ProductController::class, 'destroyCategory'])->name('categories.destroy');
 });
 
 // Route khusus Kasir (Admin juga boleh akses)
