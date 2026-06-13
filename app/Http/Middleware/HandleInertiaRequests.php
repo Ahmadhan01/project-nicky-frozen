@@ -29,16 +29,20 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
 {
+    if ($request->user()) {
+        $request->user()->update(['last_active_at' => now()]);
+    }
+
     return [
         ...parent::share($request),
         'auth' => [
             'user' => $request->user(),
         ],
-        'flash' => [                                    // ← tambah ini
-            'success' => session('success'),            // ← tambah ini
-            'error'   => session('error'),   
-            'transaction' => session('transaction'),           // ← tambah ini
-        ],                                              // ← tambah ini
+        'flash' => [
+            'success'     => session('success'),
+            'error'       => session('error'),
+            'transaction' => session('transaction'),
+        ],
     ];
 }
 }

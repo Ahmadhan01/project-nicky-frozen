@@ -29,6 +29,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/categories', [\App\Http\Controllers\Admin\ProductController::class, 'storeCategory'])->name('categories.store');
 Route::put('/categories/{category}', [\App\Http\Controllers\Admin\ProductController::class, 'updateCategory'])->name('categories.update');
 Route::delete('/categories/{category}', [\App\Http\Controllers\Admin\ProductController::class, 'destroyCategory'])->name('categories.destroy');
+Route::get('/master', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('master');
+Route::post('/master', [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('master.store');
+Route::put('/master/{user}', [\App\Http\Controllers\Admin\UserController::class, 'update'])->name('master.update');
+Route::delete('/master/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('master.destroy');
 });
 
 // Route khusus Kasir (Admin juga boleh akses)
