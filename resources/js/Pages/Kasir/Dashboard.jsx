@@ -98,25 +98,40 @@ useEffect(() => {
         return matchSearch && matchCategory;
     });
 
-    // Tambah ke keranjang
-    const addToCart = (product) => {
-        if (product.stock === 0) return;
-        setCart(prev => {
-            const exists = prev.find(i => i.id === product.id);
-            if (exists) {
-                return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
-            }
-            return [...prev, { ...product, qty: 1 }];
-        });
-    };
+    // Tambah ke keranjang — batasi sesuai stok
+const addToCart = (product) => {
+    if (product.stock === 0) return;
+    setCart(prev => {
+        const exists = prev.find(i => i.id === product.id);
+        if (exists) {
+            // Cek apakah qty sudah melebihi stok
+            if (exists.qty >= product.stock) {
+    alert(`Stok ${product.name} hanya tersisa ${product.stock}, tidak bisa menambah lagi!`);
+    return prev;
+}
+            return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
+        }
+        return [...prev, { ...product, qty: 1 }];
+    });
+};
 
-    // Update qty
-    const updateQty = (id, delta) => {
-        setCart(prev => prev
-            .map(i => i.id === id ? { ...i, qty: i.qty + delta } : i)
-            .filter(i => i.qty > 0)
-        );
-    };
+// Update qty — batasi sesuai stok
+const updateQty = (id, delta) => {
+    setCart(prev => prev
+        .map(i => {
+            if (i.id === id) {
+                const newQty = i.qty + delta;
+                if (newQty > i.stock) {
+                    alert(`Stok ${i.name} hanya tersisa ${i.stock}!`);
+                    return i;
+                }
+                return { ...i, qty: newQty };
+            }
+            return i;
+        })
+        .filter(i => i.qty > 0)
+    );
+};
 
     // Hapus item
     const removeItem = (id) => setCart(prev => prev.filter(i => i.id !== id));
@@ -193,13 +208,40 @@ if (paymentMethod === 'cash' && paid < subtotal) {
         payment_method: paymentMethod,
     }, {
         onSuccess: (page) => {
-            setCart([]);
-            setPaidAmount('');
-            if (page.props.flash?.transaction) {
-                setReceiptData(page.props.flash.transaction);
-            }
-        },
+    setCart([]);
+    setPaidAmount('');
+    const transaction = page.props.flash?.transaction;
+    if (transaction) {
+        setReceiptData(transaction);
+        // Reload produk setelah modal struk ditutup, bukan sekarang
+    } else {
+        router.reload({ only: ['products'] });
+    }
+},
     });
+
+    router.post(route('kasir.transaction.store'), {
+    items: cart.map(i => ({
+        id:    i.id,
+        qty:   i.qty,
+        price: i.price,
+    })),
+    paid_amount:    paid,
+    payment_method: paymentMethod,
+}, {
+    onSuccess: (page) => {
+        setCart([]);
+        setPaidAmount('');
+        if (page.props.flash?.transaction) {
+            setReceiptData(page.props.flash.transaction);
+        }
+    },
+    onError: (errors) => {
+        if (errors.stock) {
+            alert(errors.stock);
+        }
+    },
+});
 };
 
 // Logout
@@ -285,6 +327,16 @@ const printReceipt = () => {
         <span>⚠️</span>
         <span>
             <strong>Mode Offline Aktif.</strong> {offlineQueue.length} transaksi tersimpan lokal — data akan disinkronkan otomatis saat online kembali.
+        </span>
+    </div>
+)}
+
+{/* Banner Stok Menipis */}
+{products.filter(p => p.stock > 0 && p.stock <= 5).length > 0 && (
+    <div className="bg-orange-900/80 border-b border-orange-700 px-6 py-2 flex items-center gap-3 text-orange-300 text-sm">
+        <span>⚠️</span>
+        <span>
+            <strong>Stok Menipis!</strong> {products.filter(p => p.stock > 0 && p.stock <= 5).map(p => `${p.name} (${p.stock})`).join(', ')}
         </span>
     </div>
 )}
@@ -456,9 +508,13 @@ const printReceipt = () => {
                                         </div>
                                         <p className="text-sm font-medium leading-tight">{product.name}</p>
                                         <p className="text-cyan-400 font-bold text-sm mt-1">{formatRp(product.price)}</p>
-                                        <p className={`text-xs mt-0.5 ${habis ? 'text-red-400' : 'text-gray-500'}`}>
-                                            {habis ? 'habis' : `Stok: ${product.stock}`}
-                                        </p>
+                                        <p className={`text-xs mt-0.5 ${
+    habis ? 'text-red-400' :
+    product.stock <= 5 ? 'text-orange-400' :
+    'text-gray-500'
+}`}>
+    {habis ? 'Habis' : product.stock <= 5 ? `⚠️ Stok: ${product.stock}` : `Stok: ${product.stock}`}
+</p>
                                     </div>
                                 );
                             })}
@@ -730,11 +786,14 @@ const printReceipt = () => {
             {/* Tombol */}
             <div className="flex gap-3 px-6 pb-6">
                 <button
-                    onClick={() => setReceiptData(null)}
-                    className="flex-1 py-2.5 rounded-xl border border-gray-600 text-sm font-semibold hover:bg-gray-800 transition"
-                >
-                    Tutup
-                </button>
+    onClick={() => {
+        setReceiptData(null);
+        router.reload({ only: ['products'] });
+    }}
+    className="flex-1 py-2.5 rounded-xl border border-gray-600 text-sm font-semibold hover:bg-gray-800 transition"
+>
+    Tutup
+</button>
                 <button
     onClick={printReceipt}
     className="flex-1 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-semibold transition flex items-center justify-center gap-2"

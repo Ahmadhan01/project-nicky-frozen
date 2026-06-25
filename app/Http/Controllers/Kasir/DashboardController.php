@@ -17,11 +17,11 @@ class DashboardController extends Controller
         $activeSession = auth()->user()->activeSession();
 
         return Inertia::render('Kasir/Dashboard', [
-            'products'      => Product::with('category')->where('is_active', true)->get(),
-            'kiosList'      => Kios::where('is_active', true)->get(),
-            'shifts'        => Shift::where('is_active', true)->get(),
-            'activeSession' => $activeSession?->load(['kios', 'shift']),
-        ]);
+    'products' => Product::with('category')->where('is_active', true)->get(),
+    'kiosList'      => Kios::where('is_active', true)->get(),
+    'shifts'        => Shift::where('is_active', true)->get(),
+    'activeSession' => $activeSession?->load(['kios', 'shift']),
+]);
     }
 
     public function startSession(Request $request)

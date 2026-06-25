@@ -25,51 +25,64 @@ class TransactionController extends Controller
     ]);
 
     $activeSession = auth()->user()->activeSession();
-   
 
     if (!$activeSession) {
         return back()->withErrors(['session' => 'Tidak ada sesi aktif.']);
     }
 
-    $transaction = DB::transaction(function () use ($request, $activeSession) {
-        $total = collect($request->items)->sum(fn($i) => $i['price'] * $i['qty']);
+    try {
+        $transaction = DB::transaction(function () use ($request, $activeSession) {
+            $total = collect($request->items)->sum(fn($i) => $i['price'] * $i['qty']);
 
-        $transaction = Transaction::create([
-            'user_id'          => auth()->id(),
-            'kasir_session_id' => $activeSession->id,
-            'invoice_number'   => Transaction::generateInvoiceNumber(),
-            'total_amount'     => $total,
-            'paid_amount'      => $request->paid_amount,
-            'change_amount'    => $request->paid_amount - $total,
-            'payment_method'   => $request->payment_method,
-            'status'           => 'completed',
-        ]);
+            // Validasi stok semua item dulu
+            foreach ($request->items as $item) {
+                $product = Product::find($item['id']);
+                if (!$product || $product->stock < $item['qty']) {
+                    throw new \Exception("Stok {$product->name} tidak cukup! Tersisa {$product->stock}.");
+                }
+            }
 
-        foreach ($request->items as $item) {
-            TransactionItem::create([
-                'transaction_id' => $transaction->id,
-                'product_id'     => $item['id'],
-                'quantity'       => $item['qty'],
-                'price'          => $item['price'],
-                'subtotal'       => $item['price'] * $item['qty'],
+            $transaction = Transaction::create([
+                'user_id'          => auth()->id(),
+                'kasir_session_id' => $activeSession->id,
+                'invoice_number'   => Transaction::generateInvoiceNumber(),
+                'total_amount'     => $total,
+                'paid_amount'      => $request->paid_amount,
+                'change_amount'    => $request->paid_amount - $total,
+                'payment_method'   => $request->payment_method,
+                'status'           => 'completed',
+                'is_offline_sync'  => false,
             ]);
 
-            Product::where('id', $item['id'])->decrement('stock', $item['qty']);
-        }
+            foreach ($request->items as $item) {
+                TransactionItem::create([
+                    'transaction_id' => $transaction->id,
+                    'product_id'     => $item['id'],
+                    'quantity'       => $item['qty'],
+                    'price'          => $item['price'],
+                    'subtotal'       => $item['price'] * $item['qty'],
+                ]);
 
-        AuditLog::record(
-    'transaction',
-    "Transaksi {$transaction->invoice_number} sebesar Rp " . number_format($total, 0, ',', '.'),
-    ['invoice' => $transaction->invoice_number, 'total' => $total]
-);
+                Product::where('id', $item['id'])->decrement('stock', $item['qty']);
+            }
 
-        return $transaction;
-    });
+            AuditLog::record(
+                'transaction',
+                "Transaksi {$transaction->invoice_number} sebesar Rp " . number_format($total, 0, ',', '.'),
+                ['invoice' => $transaction->invoice_number, 'total' => $total]
+            );
+
+            return $transaction;
+        });
 
         return back()->with([
     'transaction' => $transaction->load(['items.product', 'user', 'kasirSession.kios', 'kasirSession.shift']),
-]);
+])->with('products', Product::with('category')->where('is_active', true)->get());
+
+    } catch (\Exception $e) {
+        return back()->withErrors(['stock' => $e->getMessage()]);
     }
+}
 
     public function index(Request $request)
 {
