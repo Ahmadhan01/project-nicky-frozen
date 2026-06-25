@@ -12,6 +12,7 @@ export default function History({ auth, transactions, kiosList, shifts }) {
 const [time, setTime] = useState(new Date());
 
 const [showUserMenu, setShowUserMenu] = useState(false);
+const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
 // Cache riwayat saat online
     useEffect(() => {
@@ -353,17 +354,11 @@ useEffect(() => {
                             <div className="flex gap-3 px-6 pb-6">
     {selectedTransaction.status !== 'cancelled' && (
         <button
-            onClick={() => {
-                if (confirm(`Batalkan transaksi ${selectedTransaction.invoice_number}? Stok akan dikembalikan.`)) {
-                    router.patch(route('kasir.transaction.cancel', selectedTransaction.id), {}, {
-                        onSuccess: () => setSelectedTransaction(null),
-                    });
-                }
-            }}
-            className="flex-1 py-2.5 rounded-xl bg-red-900/50 hover:bg-red-800 text-red-400 text-sm font-semibold transition"
-        >
-            🚫 Batalkan Transaksi
-        </button>
+    onClick={() => setShowCancelConfirm(true)}
+    className="flex-1 py-2.5 rounded-xl bg-red-900/50 hover:bg-red-800 text-red-400 text-sm font-semibold transition"
+>
+    🚫 Batalkan Transaksi
+</button>
     )}
     <button
         onClick={() => setSelectedTransaction(null)}
@@ -374,7 +369,46 @@ useEffect(() => {
 </div>
                         </div>
                     </div>
+                    
+                    
                 )}
+{showCancelConfirm && (
+    <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-2xl z-10 p-6">
+        <div className="bg-[#1c2333] rounded-2xl w-full max-w-xs border border-gray-700 shadow-2xl overflow-hidden">
+            <div className="p-6 flex flex-col items-center text-center">
+                <div className="w-14 h-14 rounded-full bg-red-500/20 flex items-center justify-center mb-4 text-2xl">
+                    ⚠️
+                </div>
+                <p className="text-white font-semibold text-base">Batalkan Transaksi?</p>
+                <p className="text-gray-400 text-xs mt-2">
+                    Transaksi {selectedTransaction.invoice_number} akan dibatalkan. Stok akan dikembalikan secara otomatis.
+                </p>
+            </div>
+            <div className="flex border-t border-gray-700">
+                <button
+                    onClick={() => setShowCancelConfirm(false)}
+                    className="flex-1 py-3 text-sm font-semibold text-gray-300 hover:bg-gray-700/50 transition border-r border-gray-700"
+                >
+                    Batal
+                </button>
+                <button
+                    onClick={() => {
+                        router.patch(route('kasir.transaction.cancel', selectedTransaction.id), {}, {
+                            onSuccess: () => {
+                                setShowCancelConfirm(false);
+                                setSelectedTransaction(null);
+                            },
+                        });
+                    }}
+                    className="flex-1 py-3 text-sm font-semibold text-red-400 hover:bg-red-500/20 transition"
+                >
+                    Batalkan
+                </button>
+            </div>
+        </div>
+    </div>
+)}
+                
             </div>
         </>
     );

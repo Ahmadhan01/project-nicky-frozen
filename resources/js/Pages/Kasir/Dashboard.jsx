@@ -18,6 +18,7 @@ const [offlineQueue, setOfflineQueue] = useState(() => {
 });
 const [isSyncing, setIsSyncing] = useState(false);
 const [showOfflineToast, setShowOfflineToast] = useState(false);
+const [alertModal, setAlertModal] = useState(null);
 
     // Tampilkan struk otomatis setelah transaksi berhasil
 useEffect(() => {
@@ -106,7 +107,7 @@ const addToCart = (product) => {
         if (exists) {
             // Cek apakah qty sudah melebihi stok
             if (exists.qty >= product.stock) {
-    alert(`Stok ${product.name} hanya tersisa ${product.stock}, tidak bisa menambah lagi!`);
+    setAlertModal({ type: 'alert', message: `Stok ${product.name} hanya tersisa ${product.stock}, tidak bisa menambah lagi!` });
     return prev;
 }
             return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
@@ -122,7 +123,7 @@ const updateQty = (id, delta) => {
             if (i.id === id) {
                 const newQty = i.qty + delta;
                 if (newQty > i.stock) {
-                    alert(`Stok ${i.name} hanya tersisa ${i.stock}!`);
+                    setAlertModal({ type: 'alert', message: `Stok ${i.name} hanya tersisa ${i.stock}!` });
                     return i;
                 }
                 return { ...i, qty: newQty };
@@ -130,6 +131,40 @@ const updateQty = (id, delta) => {
             return i;
         })
         .filter(i => i.qty > 0)
+    );
+};
+
+// Set qty langsung dari input — batasi sesuai stok
+const setQtyDirect = (id, value) => {
+    const parsed = parseInt(value);
+    if (isNaN(parsed) || value === '') {
+        // Biarkan kosong sementara user mengetik
+        setCart(prev => prev.map(i => i.id === id ? { ...i, qtyInput: value } : i));
+        return;
+    }
+    if (parsed <= 0) {
+        removeItem(id);
+        return;
+    }
+    setCart(prev => prev.map(i => {
+        if (i.id !== id) return i;
+        if (parsed > i.stock) {
+            setAlertModal({ type: 'alert', message: `Stok ${i.name} hanya tersisa ${i.stock}!` });
+            return { ...i, qty: i.stock, qtyInput: String(i.stock) };
+        }
+        return { ...i, qty: parsed, qtyInput: String(parsed) };
+    }));
+};
+
+const commitQtyInput = (id) => {
+    setCart(prev => prev
+        .map(i => {
+            if (i.id !== id) return i;
+            const parsed = parseInt(i.qtyInput);
+            if (isNaN(parsed) || parsed <= 0) return null;
+            return { ...i, qty: parsed, qtyInput: undefined };
+        })
+        .filter(Boolean)
     );
 };
 
@@ -174,7 +209,7 @@ const processTransaction = () => {
     : subtotal;
 
 if (paymentMethod === 'cash' && paid < subtotal) {
-    alert('Uang pembayaran kurang!');
+    setAlertModal({ type: 'alert', message: 'Uang pembayaran kurang!' });
     return;
 }
 
@@ -193,7 +228,7 @@ if (paymentMethod === 'cash' && paid < subtotal) {
         setOfflineQueue(updatedQueue);
         setCart([]);
         setPaidAmount('');
-        alert(`Transaksi disimpan offline! Total tersimpan: ${updatedQueue.length} transaksi.`);
+        setAlertModal({ type: 'alert', message: `Transaksi disimpan offline! Total tersimpan: ${updatedQueue.length} transaksi.` });
         return;
     }
 
@@ -208,40 +243,24 @@ if (paymentMethod === 'cash' && paid < subtotal) {
         payment_method: paymentMethod,
     }, {
         onSuccess: (page) => {
-    setCart([]);
-    setPaidAmount('');
-    const transaction = page.props.flash?.transaction;
-    if (transaction) {
-        setReceiptData(transaction);
-        // Reload produk setelah modal struk ditutup, bukan sekarang
-    } else {
+            setCart([]);
+            setPaidAmount('');
+            const transaction = page.props.flash?.transaction;
+            if (transaction) {
+                setReceiptData(transaction);
+            } else {
+                router.reload({ only: ['products'] });
+            }
+        },
+        onError: (errors) => {
+    if (errors.stock) {
+        setAlertModal({ type: 'alert', message: errors.stock });
         router.reload({ only: ['products'] });
+    } else if (errors.session) {
+        setAlertModal({ type: 'alert', message: errors.session });
     }
 },
     });
-
-    router.post(route('kasir.transaction.store'), {
-    items: cart.map(i => ({
-        id:    i.id,
-        qty:   i.qty,
-        price: i.price,
-    })),
-    paid_amount:    paid,
-    payment_method: paymentMethod,
-}, {
-    onSuccess: (page) => {
-        setCart([]);
-        setPaidAmount('');
-        if (page.props.flash?.transaction) {
-            setReceiptData(page.props.flash.transaction);
-        }
-    },
-    onError: (errors) => {
-        if (errors.stock) {
-            alert(errors.stock);
-        }
-    },
-});
 };
 
 // Logout
@@ -316,6 +335,49 @@ const printReceipt = () => {
         printWindow.print();
         printWindow.close();
     }, 300);
+};
+
+const AlertModal = () => {
+    if (!alertModal) return null;
+    return (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[999] p-4">
+            <div className="bg-[#1c2333] rounded-2xl w-full max-w-sm border border-gray-700 shadow-2xl overflow-hidden">
+                <div className="p-6 flex flex-col items-center text-center">
+                    <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 text-2xl ${
+                        alertModal.type === 'confirm' ? 'bg-red-500/20' : 'bg-yellow-500/20'
+                    }`}>
+                        {alertModal.type === 'confirm' ? '⚠️' : 'ℹ️'}
+                    </div>
+                    <p className="text-white font-semibold text-base leading-snug">
+                        {alertModal.message}
+                    </p>
+                </div>
+                <div className={`flex border-t border-gray-700 ${alertModal.type === 'confirm' ? '' : ''}`}>
+                    {alertModal.type === 'confirm' && (
+                        <button
+                            onClick={() => setAlertModal(null)}
+                            className="flex-1 py-3 text-sm font-semibold text-gray-300 hover:bg-gray-700/50 transition border-r border-gray-700"
+                        >
+                            Batal
+                        </button>
+                    )}
+                    <button
+                        onClick={() => {
+                            alertModal.onConfirm?.();
+                            setAlertModal(null);
+                        }}
+                        className={`flex-1 py-3 text-sm font-semibold transition ${
+                            alertModal.type === 'confirm'
+                                ? 'text-red-400 hover:bg-red-500/20'
+                                : 'text-cyan-400 hover:bg-cyan-500/20'
+                        }`}
+                    >
+                        {alertModal.type === 'confirm' ? 'Ya, Batalkan' : 'OK'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
 };
 
     return (
@@ -553,10 +615,25 @@ const printReceipt = () => {
                                             <p className="text-xs text-gray-400">{formatRp(item.price)}</p>
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 bg-[#0d1117] rounded text-sm hover:bg-gray-700">-</button>
-                                            <span className="text-xs w-5 text-center">{item.qty}</span>
-                                            <button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 bg-[#0d1117] rounded text-sm hover:bg-gray-700">+</button>
-                                        </div>
+    <button
+        onClick={() => updateQty(item.id, -1)}
+        className="w-6 h-6 bg-[#0d1117] rounded text-sm hover:bg-gray-700 flex items-center justify-center"
+    >-</button>
+    <input
+        type="text"
+        inputMode="numeric"
+        value={item.qtyInput !== undefined ? item.qtyInput : item.qty}
+        onChange={e => setQtyDirect(item.id, e.target.value)}
+        onBlur={() => commitQtyInput(item.id)}
+        onFocus={e => e.target.select()}
+        onKeyDown={e => e.key === 'Enter' && e.target.blur()}
+        className="w-8 h-6 bg-[#0d1117] border border-gray-600 rounded text-xs text-center text-white outline-none focus:border-cyan-500"
+    />
+    <button
+        onClick={() => updateQty(item.id, 1)}
+        className="w-6 h-6 bg-[#0d1117] rounded text-sm hover:bg-gray-700 flex items-center justify-center"
+    >+</button>
+</div>
                                         <span className="text-xs text-white min-w-fit">{formatRp(item.price * item.qty)}</span>
                                         <button onClick={() => removeItem(item.id)} className="text-red-400 hover:text-red-300 text-sm">✕</button>
                                     </div>
@@ -805,6 +882,7 @@ const printReceipt = () => {
     </div>
 )}
             </div>
+            <AlertModal />
         </>
     );
 }
