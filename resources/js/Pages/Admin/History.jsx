@@ -52,7 +52,11 @@ useEffect(() => {
                         <button onClick={() => router.visit(route('admin.products'))} className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2">📦 Produk</button>
                         <button onClick={() => router.visit(route('admin.recap'))} className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2">📊 Rekap</button>
                         <button onClick={() => router.visit(route('admin.audit'))} className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2">🔍 Audit</button>
-                        <button onClick={() => router.visit(route('admin.master'))} className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2">👑 Master</button>
+                        {auth.user.role === 'owner' && (
+    <button onClick={() => router.visit(route('admin.master'))} className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2">
+        👑 Master
+    </button>
+)}
                     </div>
                     <div className="flex items-center gap-3">
                         <span className="bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">● Online</span>
@@ -190,7 +194,7 @@ useEffect(() => {
                 {/* Modal Detail */}
                 {selectedTransaction && (
                     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                        <div className="bg-[#161b22] rounded-2xl w-full max-w-lg border border-gray-700 shadow-2xl">
+                     <div className="bg-[#161b22] rounded-2xl w-full max-w-lg border border-gray-700 shadow-2xl flex flex-col max-h-[90vh]">
                             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
                                 <div className="flex items-center gap-2">
                                     <span>📄</span>
@@ -198,7 +202,7 @@ useEffect(() => {
                                 </div>
                                 <button onClick={() => setSelectedTransaction(null)} className="text-gray-400 hover:text-white">✕</button>
                             </div>
-                            <div className="p-6 space-y-4">
+                            <div className="p-6 space-y-4 overflow-auto flex-1">
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="bg-[#0d1117] rounded-xl p-3">
                                         <p className="text-xs text-gray-500 mb-1">ID TRANSAKSI</p>

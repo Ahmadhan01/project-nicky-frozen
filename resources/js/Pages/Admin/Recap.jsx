@@ -72,7 +72,11 @@ useEffect(() => {
                         <button onClick={() => router.visit(route('admin.products'))} className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2">📦 Produk</button>
                         <button className="bg-[#1f2937] px-4 py-2 rounded-lg text-sm text-cyan-400 flex items-center gap-2">📊 Rekap</button>
                         <button onClick={() => router.visit(route('admin.audit'))} className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2">🔍 Audit</button>
-                        <button onClick={() => router.visit(route('admin.master'))} className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2">👑 Master</button>
+                       {auth.user.role === 'owner' && (
+    <button onClick={() => router.visit(route('admin.master'))} className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2">
+        👑 Master
+    </button>
+)}
                     </div>
                     <div className="flex items-center gap-3">
                         <span className="bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">● Online</span>

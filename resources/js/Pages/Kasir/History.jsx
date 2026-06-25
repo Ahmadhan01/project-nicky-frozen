@@ -6,10 +6,44 @@ export default function History({ auth, transactions, kiosList, shifts }) {
     const [filterKios, setFilterKios] = useState('');
     const [filterShift, setFilterShift] = useState('');
     const [filterMethod, setFilterMethod] = useState('');
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
+    const [cachedTransactions, setCachedTransactions] = useState([]);
 
 const [time, setTime] = useState(new Date());
 
 const [showUserMenu, setShowUserMenu] = useState(false);
+
+// Cache riwayat saat online
+    useEffect(() => {
+    // Selalu simpan data terbaru ke cache saat online
+    if (navigator.onLine && transactions && transactions.length > 0) {
+        localStorage.setItem('nicky_cached_transactions', JSON.stringify(transactions));
+        localStorage.removeItem('nicky_offline_nav');
+        setCachedTransactions(transactions);
+    } else {
+        // Ambil dari cache
+        const cached = localStorage.getItem('nicky_cached_transactions');
+        if (cached) setCachedTransactions(JSON.parse(cached));
+    }
+}, [transactions]);
+
+    // Deteksi online/offline
+   
+useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+    };
+}, []);
+
+    // Gunakan cachedTransactions kalau offline
+    const displayTransactions = isOnline ? transactions : cachedTransactions;
 
 useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -37,6 +71,12 @@ useEffect(() => {
     return (
         <>
             <Head title="Riwayat Transaksi" />
+            {!isOnline && (
+    <div className="bg-yellow-900/80 border-b border-yellow-700 px-6 py-3 flex items-center gap-3 text-yellow-300 text-sm">
+        <span>⚠️</span>
+        <span><strong>Mode Offline.</strong> Menampilkan data terakhir yang tersimpan.</span>
+    </div>
+)}
             <div className="min-h-screen bg-[#0d1117] text-white flex flex-col">
 
                 {/* Navbar */}
@@ -60,7 +100,11 @@ useEffect(() => {
                         </button>
                     </div>
                     <div className="flex items-center gap-3">
-                        <span className="bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">● Online</span>
+                        <span className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
+    isOnline ? 'bg-green-900 text-green-400' : 'bg-red-900 text-red-400'
+}`}>
+    ● {isOnline ? 'Online' : 'Offline'}
+</span>
                         <span className="text-sm text-gray-300">
     {time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
 </span>
@@ -170,14 +214,14 @@ useEffect(() => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {transactions.length === 0 ? (
+                                {displayTransactions.length === 0 ? (
                                     <tr>
                                         <td colSpan={9} className="text-center py-10 text-gray-500">
                                             Belum ada transaksi
                                         </td>
                                     </tr>
                                 ) : (
-                                    transactions.map(trx => (
+                                    displayTransactions.map(trx => (
                                         <tr key={trx.id} className="border-b border-gray-800 hover:bg-[#1f2937] transition">
                                             <td className="px-4 py-3 font-mono text-xs text-gray-300">{trx.invoice_number}</td>
                                             <td className="px-4 py-3 text-gray-300">{formatDate(trx.created_at)}</td>
@@ -216,7 +260,7 @@ useEffect(() => {
                 {/* Modal Detail Transaksi */}
                 {selectedTransaction && (
                     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                        <div className="bg-[#161b22] rounded-2xl w-full max-w-lg border border-gray-700 shadow-2xl">
+                        <div className="bg-[#161b22] rounded-2xl w-full max-w-lg border border-gray-700 shadow-2xl flex flex-col max-h-[90vh]">
 
                             {/* Header */}
                             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
@@ -228,7 +272,7 @@ useEffect(() => {
                             </div>
 
                             {/* Info Grid */}
-                            <div className="p-6 space-y-4">
+                            <div className="p-6 space-y-4 overflow-auto flex-1">
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="bg-[#0d1117] rounded-xl p-3">
                                         <p className="text-xs text-gray-500 mb-1">ID TRANSAKSI</p>

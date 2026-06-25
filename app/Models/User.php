@@ -57,4 +57,19 @@ public function isOnline(): bool
 {
     return $this->last_active_at && $this->last_active_at->gt(now()->subMinutes(5));
 }
+
+public function isOwner(): bool
+{
+    return $this->role === 'owner';
+}
+
+public function isAdmin(): bool
+{
+    return $this->role === 'admin';
+}
+
+public function isKasir(): bool
+{
+    return $this->role === 'kasir';
+}
 }

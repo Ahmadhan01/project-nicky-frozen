@@ -26,6 +26,42 @@ useEffect(() => {
     }
 }, [flash]);
 
+// Sync offline queue
+const syncOfflineQueue = useCallback(async () => {
+    const queue = JSON.parse(localStorage.getItem('nicky_offline_queue') || '[]');
+    if (queue.length === 0) return;
+
+    setIsSyncing(true);
+    try {
+        const csrfResponse = await fetch('/csrf-refresh');
+        const csrfData = await csrfResponse.json();
+        const csrfToken = csrfData.token;
+
+        const response = await fetch(route('kasir.transaction.sync'), {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+            },
+            body: JSON.stringify({ transactions: queue }),
+        });
+
+        if (response.ok) {
+            localStorage.removeItem('nicky_offline_queue');
+            setOfflineQueue([]);
+            // Tampilkan notifikasi dulu, baru reload
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        }
+    } catch (e) {
+        console.error('Sync failed:', e);
+    } finally {
+        setIsSyncing(false);
+    }
+}, []);
+
 // Deteksi online/offline
 useEffect(() => {
     const handleOnline = () => {
@@ -103,37 +139,7 @@ const startSession = () => {
     });
 };
 
-// Sync offline queue
-const syncOfflineQueue = useCallback(async () => {
-    const queue = JSON.parse(localStorage.getItem('nicky_offline_queue') || '[]');
-    if (queue.length === 0) return;
 
-    setIsSyncing(true);
-    try {
-        const csrfResponse = await fetch('/csrf-refresh');
-        const csrfData = await csrfResponse.json();
-        const csrfToken = csrfData.token;
-
-        const response = await fetch(route('kasir.transaction.sync'), {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
-            },
-            body: JSON.stringify({ transactions: queue }),
-        });
-
-        if (response.ok) {
-            localStorage.removeItem('nicky_offline_queue');
-            setOfflineQueue([]);
-        }
-    } catch (e) {
-        console.error('Sync failed:', e);
-    } finally {
-        setIsSyncing(false);
-    }
-}, []);
 
 const [time, setTime] = useState(new Date());
 
@@ -323,7 +329,13 @@ const printReceipt = () => {
                             🛒 Kasir
                         </button>
                         <button
-    onClick={() => router.visit(route('kasir.history'))}
+    onClick={() => {
+        if (!isOnline) {
+            // Simpan flag supaya History.jsx tahu kita dari offline
+            localStorage.setItem('nicky_offline_nav', 'true');
+        }
+        router.visit(route('kasir.history'));
+    }}
     className="px-4 py-2 rounded-lg text-sm flex items-center gap-2 text-gray-400 hover:text-white"
 >
     📋 Riwayat
@@ -632,7 +644,7 @@ const printReceipt = () => {
                 {/* Modal Struk */}
 {receiptData && (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-        <div className="bg-[#161b22] rounded-2xl w-full max-w-lg border border-gray-700 shadow-2xl">
+        <div className="bg-[#161b22] rounded-2xl w-full max-w-lg border border-gray-700 shadow-2xl flex flex-col max-h-[90vh]">
 
             {/* Header Modal */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
@@ -647,7 +659,7 @@ const printReceipt = () => {
             </div>
 
             {/* Isi Struk */}
-            <div className="p-6">
+            <div className="p-6 overflow-auto flex-1">
 
                 {/* Header Toko */}
                 <div className="text-center mb-4">

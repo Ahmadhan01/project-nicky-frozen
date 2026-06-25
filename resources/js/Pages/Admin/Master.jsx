@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 
 const AVATAR_COLORS = ['#22d3ee', '#a855f7', '#22c55e', '#ef4444', '#eab308', '#ec4899', '#f97316', '#ffffff', '#6b7280'];
 
-export default function Master({ auth, kasirs, kiosList, shifts, flash }) {
+export default function Master({ auth, users, kiosList, shifts, flash }) {
     const [showModal, setShowModal] = useState(false);
     const [editKasir, setEditKasir] = useState(null);
     const [viewKasir, setViewKasir] = useState(null);
@@ -11,6 +11,7 @@ export default function Master({ auth, kasirs, kiosList, shifts, flash }) {
     const [showPassword, setShowPassword] = useState(false);
     const [form, setForm] = useState({
         name: '', username: '', password: '',
+        role: 'kasir',  
         default_kios_id: '', default_shift_id: '',
         avatar_color: '#22d3ee', notes: '',
     });
@@ -33,8 +34,8 @@ export default function Master({ auth, kasirs, kiosList, shifts, flash }) {
         hour: '2-digit', minute: '2-digit'
     }) : '-';
 
-    const onlineCount  = kasirs.filter(k => k.is_online).length;
-    const offlineCount = kasirs.length - onlineCount;
+    const onlineCount  = users.filter(k => k.is_online).length;
+const offlineCount = users.length - onlineCount;
 
     const openAdd = () => {
         setEditKasir(null);
@@ -42,19 +43,20 @@ export default function Master({ auth, kasirs, kiosList, shifts, flash }) {
         setShowModal(true);
     };
 
-    const openEdit = (kasir) => {
-        setEditKasir(kasir);
-        setForm({
-            name:             kasir.name,
-            username:         kasir.username,
-            password:         '',
-            default_kios_id:  kasir.default_kios?.id ?? '',
-            default_shift_id: kasir.default_shift?.id ?? '',
-            avatar_color:     kasir.avatar_color,
-            notes:            kasir.notes ?? '',
-        });
-        setShowModal(true);
-    };
+    const openEdit = (user) => {
+    setEditKasir(user);
+    setForm({
+        name:             user.name,
+        username:         user.username,
+        password:         '',
+        role:             user.role,      // ← tambah ini
+        default_kios_id:  user.default_kios?.id ?? '',
+        default_shift_id: user.default_shift?.id ?? '',
+        avatar_color:     user.avatar_color,
+        notes:            user.notes ?? '',
+    });
+    setShowModal(true);
+};
 
     const handleSubmit = () => {
         if (editKasir) {
@@ -133,64 +135,77 @@ export default function Master({ auth, kasirs, kiosList, shifts, flash }) {
                 <div className="p-6">
                     {/* Title */}
                     <div className="flex items-center justify-between mb-5">
-                        <div>
-                            <h1 className="text-xl font-bold">Menu Master</h1>
-                            <p className="text-gray-400 text-sm">Kelola profil kasir dan pantau status kerja real-time</p>
-                        </div>
-                        <button onClick={openAdd}
-                            className="bg-cyan-500 hover:bg-cyan-400 text-white font-semibold px-4 py-2 rounded-xl flex items-center gap-2 transition text-sm">
-                            + Tambah Kasir
-                        </button>
-                    </div>
+    <div>
+        <h1 className="text-xl font-bold">Menu Master</h1>
+        <p className="text-gray-400 text-sm">Kelola profil pengguna dan pantau status kerja real-time</p>
+    </div>
+    <button onClick={openAdd}
+        className="bg-cyan-500 hover:bg-cyan-400 text-white font-semibold px-4 py-2 rounded-xl flex items-center gap-2 transition text-sm">
+        + Tambah Pengguna
+    </button>
+</div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                         {/* Daftar Kasir */}
                         <div className="lg:col-span-2">
                             <div className="flex items-center justify-between mb-3">
-                                <p className="font-semibold text-sm">Daftar Kasir</p>
-                                <span className="text-xs text-gray-400">{kasirs.length} Kasir</span>
-                            </div>
+    <p className="font-semibold text-sm">Daftar Pengguna</p>
+    <span className="text-xs text-gray-400">{users.length} Pengguna</span>
+</div>
                             <div className="space-y-3">
-                                {kasirs.length === 0 ? (
-                                    <div className="text-center py-10 text-gray-500 bg-[#161b22] rounded-xl border border-gray-800">
-                                        Belum ada kasir
-                                    </div>
-                                ) : (
-                                    kasirs.map(kasir => (
-                                        <div key={kasir.id} className={`bg-[#161b22] rounded-xl border-l-4 p-4 flex items-center justify-between ${
-                                            kasir.is_online ? 'border-cyan-500' : 'border-gray-700'
-                                        }`}>
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white"
-                                                    style={{ backgroundColor: kasir.avatar_color }}>
-                                                    {kasir.name.charAt(0).toUpperCase()}
-                                                </div>
-                                                <div>
-                                                    <p className="font-semibold text-sm">{kasir.name}</p>
-                                                    <p className="text-xs text-gray-400 mb-1">@{kasir.username}</p>
-                                                    <div className="flex gap-2">
-                                                        <span className="bg-gray-800 text-gray-300 text-xs px-2 py-0.5 rounded-full font-medium">
-                                                            {kasir.default_kios?.name ?? '-'}
-                                                        </span>
-                                                        <span className="bg-green-900/50 text-green-400 text-xs px-2 py-0.5 rounded-full font-medium">
-                                                            {kasir.default_shift?.name ?? '-'}
-                                                        </span>
-                                                    </div>
-                                                    {kasir.notes && <p className="text-xs text-gray-500 mt-1">{kasir.notes}</p>}
-                                                    <p className="text-xs text-gray-500 mt-0.5">Terakhir aktif: {formatDate(kasir.last_active_at)}</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <button onClick={() => setViewKasir(kasir)}
-                                                    className="bg-cyan-900/50 hover:bg-cyan-800 text-cyan-400 p-2 rounded-lg transition">👁️</button>
-                                                <button onClick={() => openEdit(kasir)}
-                                                    className="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-lg transition">✏️</button>
-                                                <button onClick={() => setShowDeleteConfirm(kasir)}
-                                                    className="bg-red-900/50 hover:bg-red-800 text-red-400 p-2 rounded-lg transition">🗑️</button>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
+                                {users.length === 0 ? (
+    <div className="text-center py-10 text-gray-500 bg-[#161b22] rounded-xl border border-gray-800">
+        Belum ada pengguna
+    </div>
+) : (
+    users.map(user => (
+        <div key={user.id} className={`bg-[#161b22] rounded-xl border-l-4 p-4 flex items-center justify-between ${
+            user.is_online ? 'border-cyan-500' : 'border-gray-700'
+        }`}>
+            <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white"
+                    style={{ backgroundColor: user.avatar_color }}>
+                    {user.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                    <div className="flex items-center gap-2">
+                        <p className="font-semibold text-sm">{user.name}</p>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            user.role === 'admin'
+                                ? 'bg-purple-900/50 text-purple-400'
+                                : 'bg-cyan-900/50 text-cyan-400'
+                        }`}>
+                            {user.role === 'admin' ? '🔧 Admin' : '🛒 Kasir'}
+                        </span>
+                    </div>
+                    <p className="text-xs text-gray-400 mb-1">@{user.username}</p>
+                    <div className="flex gap-2">
+                        {user.default_kios && (
+                            <span className="bg-gray-800 text-gray-300 text-xs px-2 py-0.5 rounded-full font-medium">
+                                {user.default_kios?.name}
+                            </span>
+                        )}
+                        {user.default_shift && (
+                            <span className="bg-green-900/50 text-green-400 text-xs px-2 py-0.5 rounded-full font-medium">
+                                {user.default_shift?.name}
+                            </span>
+                        )}
+                    </div>
+                    {user.notes && <p className="text-xs text-gray-500 mt-1">{user.notes}</p>}
+                    <p className="text-xs text-gray-500 mt-0.5">Terakhir aktif: {formatDate(user.last_active_at)}</p>
+                </div>
+            </div>
+            <div className="flex gap-2">
+                <button onClick={() => setViewKasir(user)}
+                    className="bg-cyan-900/50 hover:bg-cyan-800 text-cyan-400 p-2 rounded-lg transition">👁️</button>
+                <button onClick={() => openEdit(user)}
+                    className="bg-gray-800 hover:bg-gray-700 text-white p-2 rounded-lg transition">✏️</button>
+                <button onClick={() => setShowDeleteConfirm(user)}
+                    className="bg-red-900/50 hover:bg-red-800 text-red-400 p-2 rounded-lg transition">🗑️</button>
+            </div>
+        </div>
+    ))
+)}
                             </div>
                         </div>
 
@@ -216,27 +231,27 @@ export default function Master({ auth, kasirs, kiosList, shifts, flash }) {
                                     <span className="bg-green-900/50 text-green-400 text-xs px-2 py-1 rounded-full flex items-center gap-1">● Live</span>
                                 </div>
                                 <div className="space-y-2">
-                                    {kasirs.map(kasir => (
-                                        <div key={kasir.id} className="flex items-center justify-between bg-[#0d1117] rounded-lg p-3">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white"
-                                                    style={{ backgroundColor: kasir.avatar_color }}>
-                                                    {kasir.name.charAt(0).toUpperCase()}
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-medium">{kasir.name} <span className="text-xs text-gray-400">@{kasir.username}</span></p>
-                                                    <p className="text-xs text-gray-500">{kasir.default_kios?.name} · {kasir.default_shift?.name}</p>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <span className={`text-xs flex items-center gap-1 justify-end ${kasir.is_online ? 'text-green-400' : 'text-gray-500'}`}>
-                                                    ● {kasir.is_online ? 'Online' : 'Offline'}
-                                                </span>
-                                                <p className="text-xs text-gray-500">{formatDate(kasir.last_active_at)}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+    {users.map(user => (
+        <div key={user.id} className="flex items-center justify-between bg-[#0d1117] rounded-lg p-3">
+            <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                    style={{ backgroundColor: user.avatar_color }}>
+                    {user.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                    <p className="text-sm font-medium">{user.name} <span className="text-xs text-gray-400">@{user.username}</span></p>
+                    <p className="text-xs text-gray-500">{user.default_kios?.name ?? '-'} · {user.default_shift?.name ?? '-'}</p>
+                </div>
+            </div>
+            <div className="text-right">
+                <span className={`text-xs flex items-center gap-1 justify-end ${user.is_online ? 'text-green-400' : 'text-gray-500'}`}>
+                    ● {user.is_online ? 'Online' : 'Offline'}
+                </span>
+                <p className="text-xs text-gray-500">{formatDate(user.last_active_at)}</p>
+            </div>
+        </div>
+    ))}
+</div>
                             </div>
                         </div>
                     </div>
@@ -257,6 +272,38 @@ export default function Master({ auth, kasirs, kiosList, shifts, flash }) {
                                         className="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-500 text-white"
                                         placeholder="contoh: Ahmad Basikal" />
                                 </div>
+                                <div>
+    <label className="text-xs text-gray-400 mb-1 block">Role / Hak Akses</label>
+    <div className="flex gap-2">
+        <button
+            type="button"
+            onClick={() => setForm({...form, role: 'kasir'})}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium border transition flex items-center justify-center gap-2 ${
+                form.role === 'kasir'
+                    ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400'
+                    : 'bg-[#0d1117] border-gray-700 text-gray-400 hover:border-gray-500'
+            }`}
+        >
+            🛒 Kasir
+        </button>
+        <button
+            type="button"
+            onClick={() => setForm({...form, role: 'admin'})}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium border transition flex items-center justify-center gap-2 ${
+                form.role === 'admin'
+                    ? 'bg-purple-500/20 border-purple-500 text-purple-400'
+                    : 'bg-[#0d1117] border-gray-700 text-gray-400 hover:border-gray-500'
+            }`}
+        >
+            🔧 Admin
+        </button>
+    </div>
+    <p className="text-xs text-gray-500 mt-1">
+        {form.role === 'admin'
+            ? 'Admin dapat kelola produk, riwayat, rekap, dan audit'
+            : 'Kasir hanya dapat melakukan transaksi penjualan'}
+    </p>
+</div>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
                                         <label className="text-xs text-gray-400 mb-1 block">Username</label>
@@ -374,22 +421,22 @@ export default function Master({ auth, kasirs, kiosList, shifts, flash }) {
 
                 {/* Modal Konfirmasi Hapus */}
                 {showDeleteConfirm && (
-                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                        <div className="bg-[#161b22] rounded-2xl w-full max-w-sm border border-gray-700 p-6 text-center">
-                            <div className="text-4xl mb-3">🗑️</div>
-                            <h2 className="font-bold text-lg mb-1">Hapus Kasir?</h2>
-                            <p className="text-gray-400 text-sm mb-5">
-                                Akun <strong className="text-white">{showDeleteConfirm.name}</strong> akan dihapus permanen.
-                            </p>
-                            <div className="flex gap-3">
-                                <button onClick={() => setShowDeleteConfirm(null)}
-                                    className="flex-1 py-2.5 rounded-xl border border-gray-600 text-sm hover:bg-gray-800 transition">Batal</button>
-                                <button onClick={() => handleDelete(showDeleteConfirm)}
-                                    className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-semibold transition">Hapus</button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div className="bg-[#161b22] rounded-2xl w-full max-w-sm border border-gray-700 p-6 text-center">
+            <div className="text-4xl mb-3">🗑️</div>
+            <h2 className="font-bold text-lg mb-1">Hapus Pengguna?</h2>
+            <p className="text-gray-400 text-sm mb-5">
+                Akun <strong className="text-white">{showDeleteConfirm.name}</strong> ({showDeleteConfirm.role}) akan dihapus permanen.
+            </p>
+            <div className="flex gap-3">
+                <button onClick={() => setShowDeleteConfirm(null)}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-600 text-sm hover:bg-gray-800 transition">Batal</button>
+                <button onClick={() => handleDelete(showDeleteConfirm)}
+                    className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-semibold transition">Hapus</button>
+            </div>
+        </div>
+    </div>
+)}
             </div>
         </>
     );

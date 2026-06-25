@@ -9,6 +9,7 @@ use App\Models\TransactionItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\AuditLog;
+use Inertia\Inertia;
 
 class TransactionController extends Controller
 {
@@ -76,25 +77,22 @@ class TransactionController extends Controller
         ->where('user_id', auth()->id())
         ->latest();
 
-    // Filter kios
     if ($request->kios_id) {
         $query->whereHas('kasirSession', fn($q) => $q->where('kios_id', $request->kios_id));
     }
 
-    // Filter shift
     if ($request->shift_id) {
         $query->whereHas('kasirSession', fn($q) => $q->where('shift_id', $request->shift_id));
     }
 
-    // Filter metode
     if ($request->payment_method) {
         $query->where('payment_method', $request->payment_method);
     }
 
-    return \Inertia\Inertia::render('Kasir/History', [
-        'transactions'  => $query->get(),
-        'kiosList'      => \App\Models\Kios::all(),
-        'shifts'        => \App\Models\Shift::all(),
+    return Inertia::render('Kasir/History', [
+        'transactions' => $query->get(),
+        'kiosList'     => \App\Models\Kios::all(),
+        'shifts'       => \App\Models\Shift::all(),
     ]);
 }
 
