@@ -242,18 +242,19 @@ if (paymentMethod === 'cash' && paid < subtotal) {
         paid_amount:    paid,
         payment_method: paymentMethod,
     }, {
-        onSuccess: (page) => {
+        onSuccess: () => {
     setCart([]);
     setPaidAmount('');
-    console.log('PAGE PROPS:', page.props);
-    console.log('FLASH:', page.props.flash);
-    console.log('TRANSACTION:', page.props.flash?.transaction);
-    const transaction = page.props.flash?.transaction;
-    if (transaction) {
-        setReceiptData(transaction);
-    } else {
-        router.reload({ only: ['products'] });
-    }
+    fetch(route('kasir.transaction.last'))
+        .then(r => r.json())
+        .then(transaction => {
+            if (transaction) {
+                setReceiptData(transaction);
+            } else {
+                router.reload({ only: ['products'] });
+            }
+        })
+        .catch(() => router.reload({ only: ['products'] }));
 },
         onError: (errors) => {
     if (errors.stock) {

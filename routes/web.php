@@ -17,6 +17,7 @@ Route::middleware(['auth', 'role:admin,kasir,owner'])->prefix('kasir')->name('ka
     Route::patch('/transaction/{transaction}/cancel', [\App\Http\Controllers\Kasir\TransactionController::class, 'cancel'])->name('transaction.cancel');
     Route::get('/receipt/{transaction}', [\App\Http\Controllers\Kasir\ReceiptController::class, 'show'])->name('receipt.show');
     Route::get('/history', [\App\Http\Controllers\Kasir\TransactionController::class, 'index'])->name('history');
+    Route::get('/kasir/last-transaction', [TransactionController::class, 'getLastTransaction'])->name('kasir.transaction.last');
 });
 
 // Route Admin (tanpa Master)
