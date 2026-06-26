@@ -30,7 +30,7 @@ useEffect(() => {
     return (
         <>
             <Head title="Audit Trail" />
-            <div className="min-h-screen bg-[#0d1117] text-white flex flex-col">
+            <div className="h-screen bg-[#0d1117] text-white flex flex-col overflow-hidden">
 
                 {/* Navbar */}
                 <nav className="bg-[#161b22] px-6 py-3 flex items-center justify-between border-b border-gray-800">
@@ -97,15 +97,17 @@ useEffect(() => {
                     </div>
                 </nav>
 
+               
                 {/* Content */}
-                <div className="p-6">
+<div className="flex-1 flex flex-col overflow-hidden p-6">
                     <div className="mb-6">
                         <h1 className="text-xl font-bold">Audit Trail</h1>
                         <p className="text-gray-400 text-sm">Log perubahan dan aktivitas sistem</p>
                     </div>
 
-                    {/* Log List */}
-                    <div className="space-y-3">
+                    
+                   {/* Log List */}
+<div className="flex-1 overflow-y-auto space-y-3 pr-1">
                         {logs.length === 0 ? (
                             <div className="text-center py-16 text-gray-500">
                                 <p className="text-4xl mb-2">📋</p>

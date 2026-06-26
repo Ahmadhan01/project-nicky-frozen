@@ -116,7 +116,7 @@ const categoryNames = ['Semua', ...categories.map(c => c.name)];
     return (
         <>
             <Head title="Manajemen Produk" />
-            <div className="min-h-screen bg-[#0d1117] text-white flex flex-col">
+            <div className="h-screen bg-[#0d1117] text-white flex flex-col overflow-hidden">
 
                 {/* Navbar */}
                 <nav className="bg-[#161b22] px-6 py-3 flex items-center justify-between border-b border-gray-800">
@@ -183,7 +183,8 @@ const categoryNames = ['Semua', ...categories.map(c => c.name)];
                 </nav>
 
                 {/* Content */}
-                <div className="p-6">
+                {/* Content */}
+<div className="flex-1 flex flex-col overflow-hidden p-6">
                     {/* Title */}
                     <div className="flex items-center justify-between mb-5">
     <div>
@@ -244,8 +245,10 @@ const categoryNames = ['Semua', ...categories.map(c => c.name)];
 ))}
                     </div>
 
+                   
                     {/* Grid Produk */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+<div className="flex-1 overflow-y-auto pr-1">
+<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                         {filteredProducts.map(product => (
                             <div key={product.id} className="bg-[#161b22] rounded-xl p-4 border border-gray-800 hover:border-gray-600 transition relative">
 
@@ -287,6 +290,7 @@ const categoryNames = ['Semua', ...categories.map(c => c.name)];
     </div>
 </div>
                         ))}
+                    </div>
                     </div>
                 </div>
 

@@ -55,7 +55,7 @@ useEffect(() => {
     return (
         <>
             <Head title="Rekap Keuangan" />
-            <div className="min-h-screen bg-[#0d1117] text-white flex flex-col">
+            <div className="h-screen bg-[#0d1117] text-white flex flex-col overflow-hidden">
 
                 {/* Navbar */}
                 <nav className="bg-[#161b22] px-6 py-3 flex items-center justify-between border-b border-gray-800">
@@ -122,7 +122,8 @@ useEffect(() => {
                 </nav>
 
                 {/* Content */}
-                <div className="p-6">
+                {/* Content */}
+<div className="flex-1 flex flex-col overflow-hidden p-6">
                     {/* Title */}
                     <div className="flex items-center justify-between mb-5">
                         <div>
@@ -165,6 +166,7 @@ useEffect(() => {
                         </button>
                     </div>
 
+                    <div className="flex-1 overflow-y-auto pr-1 space-y-6">
                     {/* Stats Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                         <div className="bg-[#161b22] rounded-xl border border-gray-800 p-5">
@@ -254,8 +256,9 @@ useEffect(() => {
                         </div>
                     </div>
 
+                   
                     {/* Breakdown per Produk */}
-                    <div className="bg-[#161b22] rounded-xl border border-gray-800 overflow-hidden">
+<div className="bg-[#161b22] rounded-xl border border-gray-800 overflow-hidden flex flex-col max-h-72">
                         <div className="px-5 py-4 border-b border-gray-800">
                             <p className="font-semibold text-sm">Breakdown per Produk</p>
                         </div>
@@ -285,6 +288,7 @@ useEffect(() => {
                                 )}
                             </tbody>
                         </table>
+                    </div>
                     </div>
                 </div>
             </div>

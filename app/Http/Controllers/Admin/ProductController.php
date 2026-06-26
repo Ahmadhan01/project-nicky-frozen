@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
@@ -42,9 +43,11 @@ class ProductController extends Controller
             'is_active'   => 'boolean',
         ]);
 
-        Product::create($request->all());
+        $product = Product::create($request->all());
 
-        return back()->with('success', 'Produk berhasil ditambahkan!');
+AuditLog::record('product', "Produk \"{$product->name}\" ditambahkan", ['product_id' => $product->id, 'name' => $product->name]);
+
+return back()->with('success', 'Produk berhasil ditambahkan!');
     }
 
     public function update(Request $request, Product $product)
@@ -62,14 +65,18 @@ class ProductController extends Controller
 
         $product->update($request->all());
 
-        return back()->with('success', 'Produk berhasil diupdate!');
+AuditLog::record('product', "Produk \"{$product->name}\" diupdate", ['product_id' => $product->id, 'name' => $product->name]);
+
+return back()->with('success', 'Produk berhasil diupdate!');
     }
 
     public function destroy(Product $product)
     {
-        $product->delete();
+        AuditLog::record('product', "Produk \"{$product->name}\" dihapus", ['product_id' => $product->id, 'name' => $product->name]);
 
-        return back()->with('success', 'Produk berhasil dihapus!');
+$product->delete();
+
+return back()->with('success', 'Produk berhasil dihapus!');
     }
 
     public function storeCategory(Request $request)

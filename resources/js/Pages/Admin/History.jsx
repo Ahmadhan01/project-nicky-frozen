@@ -36,7 +36,7 @@ useEffect(() => {
     return (
         <>
             <Head title="Riwayat Transaksi - Admin" />
-            <div className="min-h-screen bg-[#0d1117] text-white flex flex-col">
+            <div className="h-screen bg-[#0d1117] text-white flex flex-col overflow-hidden">
 
                 {/* Navbar */}
                 <nav className="bg-[#161b22] px-6 py-3 flex items-center justify-between border-b border-gray-800">
@@ -103,7 +103,8 @@ useEffect(() => {
                 </nav>
 
                 {/* Content */}
-                <div className="p-6">
+                {/* Content */}
+<div className="flex-1 flex flex-col overflow-hidden p-6">
                     <div className="mb-4">
                         <h1 className="text-xl font-bold">Riwayat Transaksi</h1>
                         <p className="text-gray-400 text-sm">Semua transaksi yang telah diproses</p>
@@ -134,7 +135,8 @@ useEffect(() => {
                     </div>
 
                     {/* Tabel */}
-                    <div className="bg-[#161b22] rounded-xl border border-gray-800 overflow-hidden">
+                    {/* Tabel */}
+<div className="flex-1 overflow-y-auto bg-[#161b22] rounded-xl border border-gray-800 overflow-hidden">
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-gray-800 text-gray-400 text-xs uppercase">

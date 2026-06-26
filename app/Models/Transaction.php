@@ -44,13 +44,25 @@ class Transaction extends Model
 
     // Helper: generate nomor invoice otomatis
     public static function generateInvoiceNumber(): string
-    {
-        $date    = now()->format('Ymd');
-        $last    = self::whereDate('created_at', today())->count() + 1;
-        $counter = str_pad($last, 3, '0', STR_PAD_LEFT);
+{
+    $date = now()->format('Ymd');
+    $last = self::whereDate('created_at', today())
+                ->whereIn('status', ['completed', 'cancelled'])
+                ->max('id') ?? 0;
 
-        return "INV-{$date}-{$counter}";
+    $todayCount = self::whereDate('created_at', today())->count() + 1;
+    $counter    = str_pad($todayCount, 3, '0', STR_PAD_LEFT);
+
+    // Pastikan tidak bentrok dengan yang sudah ada
+    $candidate = "INV-{$date}-{$counter}";
+    while (self::where('invoice_number', $candidate)->exists()) {
+        $todayCount++;
+        $counter   = str_pad($todayCount, 3, '0', STR_PAD_LEFT);
+        $candidate = "INV-{$date}-{$counter}";
     }
+
+    return $candidate;
+}
 
     public function kasirSession()
 {

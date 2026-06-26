@@ -380,6 +380,23 @@ const AlertModal = () => {
     );
 };
 
+const FlashToast = ({ message }) => {
+    const [visible, setVisible] = useState(true);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setVisible(false), 3000);
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (!visible) return null;
+
+    return (
+        <div className="fixed bottom-6 right-6 bg-green-600 text-white px-5 py-3 rounded-xl shadow-lg z-50 flex items-center gap-2 animate-fade-in">
+            ✅ {message}
+        </div>
+    );
+};
+
     return (
         <>
             <Head title="Kasir - Nicky Frozen" />
@@ -422,12 +439,8 @@ const AlertModal = () => {
         <button onClick={() => setShowOfflineToast(false)} className="text-gray-500 hover:text-white ml-2">✕</button>
     </div>
 )}
-            {flash?.success && (
-    <div className="fixed bottom-6 right-6 bg-green-600 text-white px-5 py-3 rounded-xl shadow-lg z-50 flex items-center gap-2">
-        ✅ {flash.success}
-    </div>
-)}
-            <div className="min-h-screen bg-[#0d1117] text-white flex flex-col">
+            {flash?.success && <FlashToast message={flash.success} />}
+            <div className="h-screen bg-[#0d1117] text-white flex flex-col overflow-hidden">
 
                 {/* Navbar */}
                 <nav className="bg-[#161b22] px-6 py-3 flex items-center justify-between border-b border-gray-800">
@@ -517,7 +530,7 @@ const AlertModal = () => {
                 <div className="flex flex-1 overflow-hidden">
 
                     {/* Kiri: Produk */}
-                    <div className="flex-1 flex flex-col p-4 overflow-auto">
+                      <div className="flex-1 flex flex-col p-4 overflow-hidden">
 
                         {/* Search */}
                         <div className="flex items-center bg-[#161b22] rounded-lg px-4 py-2 mb-4 gap-2 border border-gray-800">
@@ -549,7 +562,8 @@ const AlertModal = () => {
                         </div>
 
                         {/* Grid Produk */}
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                         <div className="flex-1 overflow-y-auto pr-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                             {filteredProducts.map(product => {
                                 const inCart = cart.find(i => i.id === product.id);
                                 const habis = product.stock === 0;
@@ -581,6 +595,7 @@ const AlertModal = () => {
                                 );
                             })}
                         </div>
+                          </div>
                     </div>
 
                     {/* Kanan: Keranjang */}
