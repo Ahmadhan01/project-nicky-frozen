@@ -75,9 +75,14 @@ class TransactionController extends Controller
             return $transaction;
         });
 
-        return back()->with([
-    'transaction' => $transaction->load(['items.product', 'user', 'kasirSession.kios', 'kasirSession.shift']),
-])->with('products', Product::with('category')->where('is_active', true)->get());
+        session()->flash('transaction', $transaction->load([
+    'items.product',
+    'user',
+    'kasirSession.kios',
+    'kasirSession.shift',
+]));
+
+return redirect()->back();
 
     } catch (\Exception $e) {
         return back()->withErrors(['stock' => $e->getMessage()]);
