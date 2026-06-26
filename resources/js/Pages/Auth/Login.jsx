@@ -20,7 +20,7 @@ export default function Login() {
 
                     {/* Icon & Title */}
                     <div className="flex flex-col items-center mb-8">
-    <img src="/LOGO_NO_BG.png" alt="Nicky Frozen" className="h-32 w-auto mb-2 object-contain" />
+    <img src="/LOGO_NO_TEXT.png" alt="Nicky Frozen" className="h-32 w-auto mb-2 object-contain" />
     <h1 className="text-white text-3xl font-extrabold tracking-wide" style={{ fontFamily: "'Poppins', sans-serif" }}>
     Welcome Back
 </h1>
