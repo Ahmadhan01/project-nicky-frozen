@@ -185,9 +185,8 @@ useEffect(() => {
                             className="bg-[#161b22] border border-gray-700 text-sm rounded-lg px-3 py-2 text-white outline-none"
                         >
                             <option value="">Semua Metode</option>
-                            <option value="cash">Cash</option>
-                            <option value="transfer">Transfer</option>
-                            <option value="qris">QRIS</option>
+<option value="cash">Tunai</option>
+<option value="non-tunai">Non-Tunai</option>
                         </select>
 
                         <button

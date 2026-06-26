@@ -247,39 +247,45 @@ const categoryNames = ['Semua', ...categories.map(c => c.name)];
                     {/* Grid Produk */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                         {filteredProducts.map(product => (
-                            <div key={product.id} className="bg-[#161b22] rounded-xl p-4 border border-gray-800 hover:border-gray-600 transition">
-                                <div className="bg-[#0d1117] rounded-lg p-4 flex items-center justify-center mb-3">
-                                    <span className="text-2xl">🍱</span>
-                                </div>
-                                <p className="text-sm font-semibold leading-tight">{product.name}</p>
-                                <p className="text-xs text-gray-400 mb-1">{product.category?.name}</p>
-                                <p className="text-cyan-400 font-bold text-sm">{formatRp(product.price)}</p>
-                                <p className="text-xs text-gray-500 mb-2">Stok: {product.stock}</p>
+                            <div key={product.id} className="bg-[#161b22] rounded-xl p-4 border border-gray-800 hover:border-gray-600 transition relative">
 
-                                {/* Progress Stok */}
-                                <div className="w-full bg-gray-700 rounded-full h-1 mb-3">
-                                    <div
-                                        className="bg-cyan-500 h-1 rounded-full"
-                                        style={{ width: `${Math.min(100, (product.stock / 100) * 100)}%` }}
-                                    />
-                                </div>
+    {/* Badge Aktif/Nonaktif */}
+    <div className={`absolute top-2 left-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white z-10 ${
+        product.is_active ? 'bg-green-500' : 'bg-red-500'
+    }`}>
+        {product.is_active ? '✓' : '✕'}
+    </div>
 
-                                {/* Tombol */}
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => openEdit(product)}
-                                        className="flex-1 bg-[#1f2937] hover:bg-gray-700 text-white text-xs py-1.5 rounded-lg flex items-center justify-center gap-1 transition"
-                                    >
-                                        ✏️ Edit
-                                    </button>
-                                    <button
-                                        onClick={() => setShowDeleteConfirm(product)}
-                                        className="flex-1 bg-red-900/50 hover:bg-red-800 text-red-400 text-xs py-1.5 rounded-lg flex items-center justify-center gap-1 transition"
-                                    >
-                                        🗑️ Hapus
-                                    </button>
-                                </div>
-                            </div>
+    <div className="bg-[#0d1117] rounded-lg p-4 flex items-center justify-center mb-3">
+        <span className="text-2xl">🍱</span>
+    </div>
+    <p className="text-sm font-semibold leading-tight">{product.name}</p>
+    <p className="text-xs text-gray-400 mb-1">{product.category?.name}</p>
+    <p className="text-cyan-400 font-bold text-sm">{formatRp(product.price)}</p>
+    <p className={`text-xs mb-2 ${product.stock === 0 ? 'text-red-400' : 'text-gray-500'}`}>
+        Stok: {product.stock}
+    </p>
+
+    {/* Progress Stok */}
+    <div className="w-full bg-gray-700 rounded-full h-1 mb-3">
+        <div
+            className="bg-cyan-500 h-1 rounded-full"
+            style={{ width: `${Math.min(100, (product.stock / 100) * 100)}%` }}
+        />
+    </div>
+
+    {/* Tombol */}
+    <div className="flex gap-2">
+        <button onClick={() => openEdit(product)}
+            className="flex-1 bg-[#1f2937] hover:bg-gray-700 text-white text-xs py-1.5 rounded-lg flex items-center justify-center gap-1 transition">
+            ✏️ Edit
+        </button>
+        <button onClick={() => setShowDeleteConfirm(product)}
+            className="flex-1 bg-red-900/50 hover:bg-red-800 text-red-400 text-xs py-1.5 rounded-lg flex items-center justify-center gap-1 transition">
+            🗑️ Hapus
+        </button>
+    </div>
+</div>
                         ))}
                     </div>
                 </div>
@@ -345,12 +351,23 @@ const categoryNames = ['Semua', ...categories.map(c => c.name)];
                                         className="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-500 text-white resize-none"
                                         rows={2} placeholder="Deskripsi produk (opsional)" />
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <input type="checkbox" id="is_active" checked={form.is_active}
-                                        onChange={e => setForm({...form, is_active: e.target.checked})}
-                                        className="rounded" />
-                                    <label htmlFor="is_active" className="text-sm text-gray-300">Produk aktif</label>
-                                </div>
+                                <div className="flex items-center gap-3 p-3 bg-[#0d1117] rounded-lg">
+    <input
+        type="checkbox"
+        id="is_active"
+        checked={form.is_active}
+        onChange={e => setForm({...form, is_active: e.target.checked})}
+        className="w-4 h-4 rounded accent-cyan-500"
+    />
+    <label htmlFor="is_active" className="text-sm text-gray-300 flex items-center gap-2">
+        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-xs ${
+            form.is_active ? 'bg-green-500' : 'bg-red-500'
+        }`}>
+            {form.is_active ? '✓' : '✕'}
+        </span>
+        {form.is_active ? 'Produk Aktif — tampil di kasir' : 'Produk Nonaktif — tidak tampil di kasir'}
+    </label>
+</div>
                             </div>
                             <div className="flex gap-3 px-6 pb-6">
                                 <button onClick={() => setShowModal(false)}

@@ -16,6 +16,7 @@ export default function History({ auth, transactions, kiosList, shifts }) {
     const [showUserMenu, setShowUserMenu] = useState(false);
 
     const [time, setTime] = useState(new Date());
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
 useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -123,9 +124,8 @@ useEffect(() => {
                         <select value={filterMethod} onChange={e => setFilterMethod(e.target.value)} onBlur={applyFilter}
                             className="bg-[#161b22] border border-gray-700 text-sm rounded-lg px-3 py-2 text-white outline-none">
                             <option value="">Semua Metode</option>
-                            <option value="cash">Cash</option>
-                            <option value="transfer">Transfer</option>
-                            <option value="qris">QRIS</option>
+<option value="cash">Tunai</option>
+<option value="non-tunai">Non-Tunai</option>
                         </select>
                         <button onClick={applyFilter}
                             className="bg-cyan-500 hover:bg-cyan-400 text-white text-sm px-4 py-2 rounded-lg transition">
@@ -275,19 +275,13 @@ useEffect(() => {
                             </div>
                             <div className="flex gap-3 px-6 pb-6">
     {selectedTransaction.status !== 'cancelled' && (
-        <button
-            onClick={() => {
-                if (confirm(`Batalkan transaksi ${selectedTransaction.invoice_number}? Stok akan dikembalikan.`)) {
-                    router.patch(route('admin.transaction.cancel', selectedTransaction.id), {}, {
-                        onSuccess: () => setSelectedTransaction(null),
-                    });
-                }
-            }}
-            className="flex-1 py-2.5 rounded-xl bg-red-900/50 hover:bg-red-800 text-red-400 text-sm font-semibold transition"
-        >
-            🚫 Batalkan Transaksi
-        </button>
-    )}
+    <button
+        onClick={() => setShowCancelConfirm(true)}
+        className="flex-1 py-2.5 rounded-xl bg-red-900/50 hover:bg-red-800 text-red-400 text-sm font-semibold transition"
+    >
+        🚫 Batalkan Transaksi
+    </button>
+)}
     <button
         onClick={() => setSelectedTransaction(null)}
         className="flex-1 py-2.5 rounded-xl border border-gray-600 text-sm font-semibold hover:bg-gray-800 transition"
@@ -299,6 +293,40 @@ useEffect(() => {
                     </div>
                 )}
             </div>
+            {/* Modal Konfirmasi Batalkan Transaksi */}
+{showCancelConfirm && selectedTransaction && (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
+        <div className="bg-[#161b22] rounded-2xl w-full max-w-sm border border-gray-700 p-6 text-center shadow-2xl">
+            <div className="text-4xl mb-3">⚠️</div>
+            <h2 className="font-bold text-lg mb-2 text-white">Batalkan Transaksi?</h2>
+            <p className="text-gray-400 text-sm mb-1">
+                Transaksi <strong className="text-white">{selectedTransaction.invoice_number}</strong> akan dibatalkan.
+            </p>
+            <p className="text-gray-400 text-sm mb-5">Stok akan dikembalikan secara otomatis.</p>
+            <div className="flex gap-3">
+                <button
+                    onClick={() => setShowCancelConfirm(false)}
+                    className="flex-1 py-2.5 rounded-xl border text-white border-gray-600 text-sm font-semibold hover:bg-gray-800 transition"
+                >
+                    Batal
+                </button>
+                <button
+                    onClick={() => {
+                        router.patch(route('admin.transaction.cancel', selectedTransaction.id), {}, {
+                            onSuccess: () => {
+                                setShowCancelConfirm(false);
+                                setSelectedTransaction(null);
+                            },
+                        });
+                    }}
+                    className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-semibold transition"
+                >
+                    Batalkan
+                </button>
+            </div>
+        </div>
+    </div>
+)}
         </>
     );
 }

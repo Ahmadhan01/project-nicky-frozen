@@ -12,11 +12,11 @@ export default function Master({ auth, users, kiosList, shifts, flash }) {
     const [form, setForm] = useState({
         name: '', username: '', password: '',
         role: 'kasir',  
-        default_kios_id: '', default_shift_id: '',
         avatar_color: '#22d3ee', notes: '',
     });
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [time, setTime] = useState(new Date());
+    const [alertMessage, setAlertMessage] = useState(null);
 
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date()), 1000);
@@ -49,9 +49,7 @@ const offlineCount = users.length - onlineCount;
         name:             user.name,
         username:         user.username,
         password:         '',
-        role:             user.role,      // ← tambah ini
-        default_kios_id:  user.default_kios?.id ?? '',
-        default_shift_id: user.default_shift?.id ?? '',
+        role:             user.role,     
         avatar_color:     user.avatar_color,
         notes:            user.notes ?? '',
     });
@@ -59,16 +57,25 @@ const offlineCount = users.length - onlineCount;
 };
 
     const handleSubmit = () => {
-        if (editKasir) {
-            router.put(route('admin.master.update', editKasir.id), form, {
-                onSuccess: () => setShowModal(false),
-            });
-        } else {
-            router.post(route('admin.master.store'), form, {
-                onSuccess: () => setShowModal(false),
-            });
-        }
-    };
+    if (!editKasir && form.password.length < 8) {
+        setAlertMessage('Password minimal 8 karakter!');
+        return;
+    }
+    if (editKasir && form.password && form.password.length < 8) {
+        setAlertMessage('Password minimal 8 karakter!');
+        return;
+    }
+
+    if (editKasir) {
+        router.put(route('admin.master.update', editKasir.id), form, {
+            onSuccess: () => setShowModal(false),
+        });
+    } else {
+        router.post(route('admin.master.store'), form, {
+            onSuccess: () => setShowModal(false),
+        });
+    }
+};
 
     const handleDelete = (kasir) => {
         router.delete(route('admin.master.destroy', kasir.id), {
@@ -312,36 +319,38 @@ const offlineCount = users.length - onlineCount;
                                             placeholder="contoh: ahmad999" />
                                     </div>
                                     <div>
-                                        <label className="text-xs text-gray-400 mb-1 block">Password {editKasir && '(kosongkan jika tidak diubah)'}</label>
-                                        <div className="relative">
-                                            <input type={showPassword ? 'text' : 'password'} value={form.password} onChange={e => setForm({...form, password: e.target.value})}
-                                                className="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-500 text-white pr-9"
-                                                placeholder="Min. 6 karakter" />
-                                            <button type="button" onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
-                                                👁️
-                                            </button>
-                                        </div>
-                                    </div>
+    <label className="text-xs text-gray-400 mb-1 block">
+        Password {editKasir && '(kosongkan jika tidak diubah)'}
+    </label>
+    <div className="relative">
+        <input
+            type={showPassword ? 'text' : 'password'}
+            value={form.password}
+            onChange={e => setForm({...form, password: e.target.value})}
+            className="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-500 text-white pr-9"
+            placeholder="Min. 8 karakter"
+        />
+        <button type="button" onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+            👁️
+        </button>
+    </div>
+    {/* Indikator kekuatan password */}
+    {form.password.length > 0 && (
+        <div className="mt-1 flex items-center gap-2">
+            <div className={`h-1 flex-1 rounded-full ${
+                form.password.length >= 8 ? 'bg-green-500' : 'bg-red-500'
+            }`} />
+            <span className={`text-xs ${
+                form.password.length >= 8 ? 'text-green-400' : 'text-red-400'
+            }`}>
+                {form.password.length >= 8 ? '✓ Password valid' : `${form.password.length}/8 karakter`}
+            </span>
+        </div>
+    )}
+</div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label className="text-xs text-gray-400 mb-1 block">Kios</label>
-                                        <select value={form.default_kios_id} onChange={e => setForm({...form, default_kios_id: e.target.value})}
-                                            className="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-500 text-white">
-                                            <option value="">Pilih kios</option>
-                                            {kiosList.map(k => <option key={k.id} value={k.id}>{k.name}</option>)}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs text-gray-400 mb-1 block">Shift Default</label>
-                                        <select value={form.default_shift_id} onChange={e => setForm({...form, default_shift_id: e.target.value})}
-                                            className="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-500 text-white">
-                                            <option value="">Pilih shift</option>
-                                            {shifts.map(s => <option key={s.id} value={s.id}>{s.name} ({s.start_time}-{s.end_time})</option>)}
-                                        </select>
-                                    </div>
-                                </div>
+                                
                                 <div>
                                     <label className="text-xs text-gray-400 mb-2 block">Warna Avatar</label>
                                     <div className="flex gap-2 flex-wrap">
@@ -438,6 +447,21 @@ const offlineCount = users.length - onlineCount;
     </div>
 )}
             </div>
+            {/* Modal Alert */}
+{alertMessage && (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
+        <div className="bg-[#161b22] rounded-2xl w-full max-w-sm border border-gray-700 p-6 text-center shadow-2xl">
+            <div className="text-4xl mb-3">⚠️</div>
+            <p className="text-white font-semibold text-sm mb-5">{alertMessage}</p>
+            <button
+                onClick={() => setAlertMessage(null)}
+                className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-semibold transition"
+            >
+                OK
+            </button>
+        </div>
+    </div>
+)}
         </>
     );
 }
