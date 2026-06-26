@@ -19,3 +19,18 @@
 ::-webkit-scrollbar-thumb:hover {
     background: #22d3ee;
 }
+
+body {
+    font-family: 'Poppins', sans-serif;
+}
+
+input:focus {
+    outline: none;
+}
+
+input, input:focus, input:active, input:-webkit-autofill {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    -webkit-box-shadow: none !important;
+}

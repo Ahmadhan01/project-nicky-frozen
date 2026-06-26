@@ -121,11 +121,11 @@ const categoryNames = ['Semua', ...categories.map(c => c.name)];
                 {/* Navbar */}
                 <nav className="bg-[#161b22] px-6 py-3 flex items-center justify-between border-b border-gray-800">
                     <div className="flex items-center gap-2">
-                        <span className="text-xl">❄️</span>
-                        <div>
-                            <p className="font-bold text-sm leading-none">Nicky Frozen</p>
-                            <p className="text-gray-500 text-xs">SISTEM KASIR</p>
-                        </div>
+                        <img src="/LOGO_NO_TEXT.png" alt="Nicky Frozen" className="h-8 w-8 object-contain" />
+<div>
+    <p className="font-bold text-sm leading-none">Nicky Frozen</p>
+    <p className="text-gray-500 text-xs">SISTEM KASIR</p>
+</div>
                     </div>
                     <div className="flex items-center gap-2">
                         
