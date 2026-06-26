@@ -75,12 +75,25 @@ class TransactionController extends Controller
             return $transaction;
         });
 
-        session()->flash('transaction', $transaction->load([
+        $transactionData = $transaction->load([
     'items.product',
     'user',
     'kasirSession.kios',
     'kasirSession.shift',
-]));
+]);
+
+return Inertia::render('Kasir/Dashboard', [
+    'auth'          => ['user' => auth()->user()],
+    'products'      => Product::with('category')->where('is_active', true)->get(),
+    'kiosList'      => \App\Models\Kios::all(),
+    'shifts'        => \App\Models\Shift::all(),
+    'activeSession' => $activeSession->load(['kios', 'shift']),
+    'flash'         => [
+        'transaction' => $transactionData,
+        'success'     => null,
+        'error'       => null,
+    ],
+]);
 
 return redirect()->back();
 
