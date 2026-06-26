@@ -243,15 +243,18 @@ if (paymentMethod === 'cash' && paid < subtotal) {
         payment_method: paymentMethod,
     }, {
         onSuccess: (page) => {
-            setCart([]);
-            setPaidAmount('');
-            const transaction = page.props.flash?.transaction;
-            if (transaction) {
-                setReceiptData(transaction);
-            } else {
-                router.reload({ only: ['products'] });
-            }
-        },
+    setCart([]);
+    setPaidAmount('');
+    console.log('PAGE PROPS:', page.props);
+    console.log('FLASH:', page.props.flash);
+    console.log('TRANSACTION:', page.props.flash?.transaction);
+    const transaction = page.props.flash?.transaction;
+    if (transaction) {
+        setReceiptData(transaction);
+    } else {
+        router.reload({ only: ['products'] });
+    }
+},
         onError: (errors) => {
     if (errors.stock) {
         setAlertModal({ type: 'alert', message: errors.stock });
