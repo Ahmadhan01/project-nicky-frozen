@@ -13,6 +13,12 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
     $middleware->trustProxies(at: '*');
+    $middleware->redirectGuestsTo('/login');
+    $middleware->redirectUsersTo(fn($request) => match(auth()->user()?->role) {
+        'owner', 'admin' => '/admin/dashboard',
+        'kasir' => '/kasir/dashboard',
+        default => '/login',
+    });
 
     $middleware->web(append: [
         \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
