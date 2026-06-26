@@ -245,7 +245,7 @@ if (paymentMethod === 'cash' && paid < subtotal) {
         onSuccess: () => {
     setCart([]);
     setPaidAmount('');
-    fetch('/kasir/last-transaction', {
+    fetch(route('kasir.transaction.last'), {
     method: 'GET',
     headers: {
         'Accept': 'application/json',
