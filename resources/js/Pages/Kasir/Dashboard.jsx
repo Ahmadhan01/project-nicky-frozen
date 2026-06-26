@@ -245,16 +245,23 @@ if (paymentMethod === 'cash' && paid < subtotal) {
         onSuccess: () => {
     setCart([]);
     setPaidAmount('');
-    fetch(route('kasir.transaction.last'))
-        .then(r => r.json())
-        .then(transaction => {
-            if (transaction) {
-                setReceiptData(transaction);
-            } else {
-                router.reload({ only: ['products'] });
-            }
-        })
-        .catch(() => router.reload({ only: ['products'] }));
+    fetch(route('kasir.transaction.last'), {
+    method: 'GET',
+    headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+    },
+    credentials: 'same-origin',
+})
+    .then(r => r.json())
+    .then(transaction => {
+        if (transaction) {
+            setReceiptData(transaction);
+        } else {
+            router.reload({ only: ['products'] });
+        }
+    })
+    .catch(() => router.reload({ only: ['products'] }));
 },
         onError: (errors) => {
     if (errors.stock) {
