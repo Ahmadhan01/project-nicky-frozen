@@ -1,8 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -44,6 +43,8 @@ Route::middleware(['auth', 'role:admin,owner'])->prefix('admin')->name('admin.')
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::put('/products/{product}/stock', [\App\Http\Controllers\Admin\ProductController::class, 'updateStock'])->name('products.stock');
 });
 
 // Route Master — khusus Owner saja
@@ -58,4 +59,4 @@ Route::get('/csrf-refresh', function () {
     return response()->json(['token' => csrf_token()]);
 })->middleware('web');
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

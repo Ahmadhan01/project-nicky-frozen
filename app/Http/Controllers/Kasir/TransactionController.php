@@ -1,14 +1,13 @@
 <?php
-
 namespace App\Http\Controllers\Kasir;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\AuditLog;
 use Inertia\Inertia;
 
 class TransactionController extends Controller
@@ -26,7 +25,7 @@ class TransactionController extends Controller
 
         $activeSession = auth()->user()->activeSession();
 
-        if (!$activeSession) {
+        if (! $activeSession) {
             return back()->withErrors(['session' => 'Tidak ada sesi aktif.']);
         }
 
@@ -35,9 +34,14 @@ class TransactionController extends Controller
                 $total = collect($request->items)->sum(fn($i) => $i['price'] * $i['qty']);
 
                 foreach ($request->items as $item) {
-                    $product = Product::find($item['id']);
-                    if (!$product || $product->stock < $item['qty']) {
-                        throw new \Exception("Stok {$product->name} tidak cukup! Tersisa {$product->stock}.");
+                    $productStock = \App\Models\ProductStock::where('product_id', $item['id'])
+                        ->where('kios_id', $activeSession->kios_id)
+                        ->first();
+
+                    if (! $productStock || $productStock->stock < $item['qty']) {
+                        $product = Product::find($item['id']);
+                        $tersisa = $productStock?->stock ?? 0;
+                        throw new \Exception("Stok {$product->name} di kios ini tidak cukup! Tersisa {$tersisa}.");
                     }
                 }
 
@@ -62,7 +66,9 @@ class TransactionController extends Controller
                         'subtotal'       => $item['price'] * $item['qty'],
                     ]);
 
-                    Product::where('id', $item['id'])->decrement('stock', $item['qty']);
+                    \App\Models\ProductStock::where('product_id', $item['id'])
+                        ->where('kios_id', $activeSession->kios_id)
+                        ->decrement('stock', $item['qty']);
                 }
 
                 AuditLog::record(
@@ -87,7 +93,7 @@ class TransactionController extends Controller
     public function getLastTransaction()
     {
         $id = session('last_transaction_id');
-        if (!$id) {
+        if (! $id) {
             return response()->json(null);
         }
 
@@ -140,7 +146,7 @@ class TransactionController extends Controller
 
         $activeSession = auth()->user()->activeSession();
 
-        if (!$activeSession) {
+        if (! $activeSession) {
             return response()->json(['error' => 'Tidak ada sesi aktif.'], 422);
         }
 

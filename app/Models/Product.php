@@ -37,4 +37,15 @@ class Product extends Model
     {
         return $this->hasMany(TransactionItem::class);
     }
+
+    public function stocks()
+{
+    return $this->hasMany(ProductStock::class);
+}
+
+// Helper: ambil stok berdasarkan kios
+public function stockForKios(int $kiosId): int
+{
+    return $this->stocks()->where('kios_id', $kiosId)->value('stock') ?? 0;
+}
 }
