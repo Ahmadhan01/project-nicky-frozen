@@ -151,46 +151,66 @@ class TransactionController extends Controller
         }
 
         $synced = 0;
+        $failed = [];
 
         foreach ($request->transactions as $trxData) {
-            DB::transaction(function () use ($trxData, $activeSession, &$synced) {
-                $total = collect($trxData['items'])->sum(fn($i) => $i['price'] * $i['qty']);
+            try {
+                DB::transaction(function () use ($trxData, $activeSession, &$synced) {
+                    // Validasi stok per kios dulu, sama seperti transaksi online biasa
+                    foreach ($trxData['items'] as $item) {
+                        $productStock = \App\Models\ProductStock::where('product_id', $item['id'])
+                            ->where('kios_id', $activeSession->kios_id)
+                            ->first();
 
-                $transaction = Transaction::create([
-                    'user_id'          => auth()->id(),
-                    'kasir_session_id' => $activeSession->id,
-                    'invoice_number'   => Transaction::generateInvoiceNumber(),
-                    'total_amount'     => $total,
-                    'paid_amount'      => $trxData['paid_amount'],
-                    'change_amount'    => $trxData['paid_amount'] - $total,
-                    'payment_method'   => $trxData['payment_method'],
-                    'status'           => 'completed',
-                    'is_offline_sync'  => true,
-                ]);
+                        if (! $productStock || $productStock->stock < $item['qty']) {
+                            $product = Product::find($item['id']);
+                            $tersisa = $productStock?->stock ?? 0;
+                            throw new \Exception("Stok {$product->name} di kios ini tidak cukup untuk sinkronisasi! Tersisa {$tersisa}.");
+                        }
+                    }
 
-                foreach ($trxData['items'] as $item) {
-                    TransactionItem::create([
-                        'transaction_id' => $transaction->id,
-                        'product_id'     => $item['id'],
-                        'quantity'       => $item['qty'],
-                        'price'          => $item['price'],
-                        'subtotal'       => $item['price'] * $item['qty'],
+                    $total = collect($trxData['items'])->sum(fn($i) => $i['price'] * $i['qty']);
+
+                    $transaction = Transaction::create([
+                        'user_id'          => auth()->id(),
+                        'kasir_session_id' => $activeSession->id,
+                        'invoice_number'   => Transaction::generateInvoiceNumber(),
+                        'total_amount'     => $total,
+                        'paid_amount'      => $trxData['paid_amount'],
+                        'change_amount'    => $trxData['paid_amount'] - $total,
+                        'payment_method'   => $trxData['payment_method'],
+                        'status'           => 'completed',
+                        'is_offline_sync'  => true,
                     ]);
 
-                    Product::where('id', $item['id'])->decrement('stock', $item['qty']);
-                }
+                    foreach ($trxData['items'] as $item) {
+                        TransactionItem::create([
+                            'transaction_id' => $transaction->id,
+                            'product_id'     => $item['id'],
+                            'quantity'       => $item['qty'],
+                            'price'          => $item['price'],
+                            'subtotal'       => $item['price'] * $item['qty'],
+                        ]);
 
-                AuditLog::record(
-                    'transaction',
-                    "Transaksi offline {$transaction->invoice_number} disinkronkan sebesar Rp " . number_format($total, 0, ',', '.'),
-                    ['invoice' => $transaction->invoice_number, 'offline_id' => $trxData['offline_id']]
-                );
+                        \App\Models\ProductStock::where('product_id', $item['id'])
+                            ->where('kios_id', $activeSession->kios_id)
+                            ->decrement('stock', $item['qty']);
+                    }
 
-                $synced++;
-            });
+                    AuditLog::record(
+                        'transaction',
+                        "Transaksi offline {$transaction->invoice_number} disinkronkan sebesar Rp " . number_format($total, 0, ',', '.'),
+                        ['invoice' => $transaction->invoice_number, 'offline_id' => $trxData['offline_id'], 'kios_id' => $activeSession->kios_id]
+                    );
+
+                    $synced++;
+                });
+            } catch (\Exception $e) {
+                $failed[] = ['offline_id' => $trxData['offline_id'], 'error' => $e->getMessage()];
+            }
         }
 
-        return response()->json(['synced' => $synced]);
+        return response()->json(['synced' => $synced, 'failed' => $failed]);
     }
 
     public function cancel(Transaction $transaction)
@@ -200,16 +220,22 @@ class TransactionController extends Controller
         }
 
         DB::transaction(function () use ($transaction) {
+            // Stok harus dikembalikan ke KIOS ASAL transaksi ini, bukan ke stok global
+            $kiosId = $transaction->kasirSession->kios_id;
+
             foreach ($transaction->items as $item) {
-                Product::where('id', $item->product_id)->increment('stock', $item->quantity);
+                \App\Models\ProductStock::firstOrCreate(
+                    ['product_id' => $item->product_id, 'kios_id' => $kiosId],
+                    ['stock' => 0]
+                )->increment('stock', $item->quantity);
             }
 
             $transaction->update(['status' => 'cancelled']);
 
             AuditLog::record(
                 'transaction',
-                "Transaksi {$transaction->invoice_number} dibatalkan — stok dikembalikan",
-                ['invoice' => $transaction->invoice_number]
+                "Transaksi {$transaction->invoice_number} dibatalkan — stok dikembalikan ke kios asalnya",
+                ['invoice' => $transaction->invoice_number, 'kios_id' => $kiosId]
             );
         });
 

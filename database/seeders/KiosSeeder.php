@@ -9,7 +9,7 @@ class KiosSeeder extends Seeder
 {
     public function run(): void
     {
-        Kios::firstOrCreate(['name' => 'Kios 1'], ['location' => 'Lokasi utama']);
-        Kios::firstOrCreate(['name' => 'Kios 2'], ['location' => 'Cabang 1']);
+        Kios::firstOrCreate(['name' => 'Kios 1'], ['location' => 'BSD City, Tangerang Selatan']);
+        Kios::firstOrCreate(['name' => 'Kios 2'], ['location' => 'Bekasi Pinggiran']);
     }
 }

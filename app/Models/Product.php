@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,7 +14,6 @@ class Product extends Model
         'code',
         'description',
         'price',
-        'stock',
         'unit',
         'image',
         'is_active',
@@ -25,6 +23,8 @@ class Product extends Model
         'price'     => 'decimal:2',
         'is_active' => 'boolean',
     ];
+
+    protected $appends = ['total_stock'];
 
     // Relasi: produk milik satu kategori
     public function category()
@@ -39,13 +39,20 @@ class Product extends Model
     }
 
     public function stocks()
-{
-    return $this->hasMany(ProductStock::class);
-}
+    {
+        return $this->hasMany(ProductStock::class);
+    }
 
 // Helper: ambil stok berdasarkan kios
-public function stockForKios(int $kiosId): int
-{
-    return $this->stocks()->where('kios_id', $kiosId)->value('stock') ?? 0;
-}
+    public function stockForKios(int $kiosId): int
+    {
+        return $this->stocks()->where('kios_id', $kiosId)->value('stock') ?? 0;
+    }
+
+    public function getTotalStockAttribute(): int
+    {
+        return $this->relationLoaded('stocks')
+            ? $this->stocks->sum('stock')
+            : $this->stocks()->sum('stock');
+    }
 }

@@ -1,7 +1,13 @@
 import { Head, router } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 
-export default function Products({ auth, products, categories, flash }) {
+export default function Products({
+    auth,
+    products,
+    categories,
+    kiosList,
+    flash,
+}) {
     const [search, setSearch] = useState("");
     const [activeCategory, setActiveCategory] = useState("Semua");
     const [showModal, setShowModal] = useState(false);
@@ -11,10 +17,10 @@ export default function Products({ auth, products, categories, flash }) {
         code: "",
         category_id: "",
         price: "",
-        stock: "",
         unit: "pcs",
         description: "",
         is_active: true,
+        stocks: {},
     });
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
     const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -36,10 +42,10 @@ export default function Products({ auth, products, categories, flash }) {
             code: "",
             category_id: "",
             price: "",
-            stock: "",
             unit: "pcs",
             description: "",
             is_active: true,
+            stocks: {}, // diisi lewat input "Stok per Kios"
         });
         setShowModal(true);
     };
@@ -59,7 +65,6 @@ export default function Products({ auth, products, categories, flash }) {
             code: product.code,
             category_id: product.category_id,
             price: product.price,
-            stock: product.stock,
             unit: product.unit,
             description: product.description ?? "",
             is_active: product.is_active,
@@ -68,33 +73,30 @@ export default function Products({ auth, products, categories, flash }) {
         setShowModal(true);
     };
 
+    const stocksToArray = () =>
+        Object.entries(form.stocks || {}).map(([kios_id, stock]) => ({
+            kios_id: parseInt(kios_id),
+            stock,
+        }));
+
     const handleSubmit = () => {
         if (editProduct) {
-            // Update produk
             router.put(route("admin.products.update", editProduct.id), form, {
                 onSuccess: () => {
-                    // Update stok per kios
-                    const stocksArray = Object.entries(form.stocks || {}).map(
-                        ([kios_id, stock]) => ({
-                            kios_id: parseInt(kios_id),
-                            stock,
-                        }),
-                    );
                     router.put(
                         route("admin.products.stock", editProduct.id),
-                        {
-                            stocks: stocksArray,
-                        },
-                        {
-                            onSuccess: () => setShowModal(false),
-                        },
+                        { stocks: stocksToArray() },
+                        { onSuccess: () => setShowModal(false) },
                     );
                 },
             });
         } else {
-            router.post(route("admin.products.store"), form, {
-                onSuccess: () => setShowModal(false),
-            });
+            // Produk baru: stok awal tiap kios dikirim sekalian
+            router.post(
+                route("admin.products.store"),
+                { ...form, stocks: stocksToArray() },
+                { onSuccess: () => setShowModal(false) },
+            );
         }
     };
 
@@ -379,17 +381,21 @@ export default function Products({ auth, products, categories, flash }) {
                                         {formatRp(product.price)}
                                     </p>
                                     <p
-                                        className={`text-xs mb-2 ${product.stock === 0 ? "text-red-400" : "text-gray-500"}`}
+                                        className={`text-xs mb-2 ${(product.stocks?.reduce((a, s) => a + s.stock, 0) ?? 0) === 0 ? "text-red-400" : "text-gray-500"}`}
                                     >
-                                        Stok: {product.stock}
+                                        Stok (semua kios):{" "}
+                                        {product.stocks?.reduce(
+                                            (a, s) => a + s.stock,
+                                            0,
+                                        ) ?? 0}
                                     </p>
 
-                                    {/* Progress Stok */}
+                                    {/* Progress Stok (total semua kios) */}
                                     <div className="w-full bg-gray-700 rounded-full h-1 mb-3">
                                         <div
                                             className="bg-cyan-500 h-1 rounded-full"
                                             style={{
-                                                width: `${Math.min(100, (product.stock / 100) * 100)}%`,
+                                                width: `${Math.min(100, ((product.stocks?.reduce((a, s) => a + s.stock, 0) ?? 0) / 100) * 100)}%`,
                                             }}
                                         />
                                     </div>
@@ -509,23 +515,7 @@ export default function Products({ auth, products, categories, flash }) {
                                             placeholder="0"
                                         />
                                     </div>
-                                    <div>
-                                        <label className="text-xs text-gray-400 mb-1 block">
-                                            Stok
-                                        </label>
-                                        <input
-                                            type="number"
-                                            value={form.stock}
-                                            onChange={(e) =>
-                                                setForm({
-                                                    ...form,
-                                                    stock: e.target.value,
-                                                })
-                                            }
-                                            className="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-500 text-white"
-                                            placeholder="0"
-                                        />
-                                    </div>
+
                                     <div>
                                         <label className="text-xs text-gray-400 mb-1 block">
                                             Satuan
@@ -547,6 +537,54 @@ export default function Products({ auth, products, categories, flash }) {
                                         </select>
                                     </div>
                                 </div>
+                                {/* Stok per Kios — tampil saat edit */}
+                            
+                                {kiosList && kiosList.length > 0 && (
+                                    <div>
+                                        <label className="text-xs text-gray-400 mb-2 block">
+                                            Stok per Kios
+                                        </label>
+                                        <div className="space-y-2">
+                                            {kiosList.map((kios) => (
+                                                <div
+                                                    key={kios.id}
+                                                    className="flex items-center gap-3 bg-[#0d1117] rounded-lg px-3 py-2"
+                                                >
+                                                    <span className="text-sm text-gray-300 flex-1">
+                                                        🏪 {kios.name}
+                                                    </span>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        value={
+                                                            form.stocks?.[
+                                                                kios.id
+                                                            ] ?? 0
+                                                        }
+                                                        onChange={(e) =>
+                                                            setForm({
+                                                                ...form,
+                                                                stocks: {
+                                                                    ...form.stocks,
+                                                                    [kios.id]:
+                                                                        parseInt(
+                                                                            e
+                                                                                .target
+                                                                                .value,
+                                                                        ) || 0,
+                                                                },
+                                                            })
+                                                        }
+                                                        className="w-24 bg-[#161b22] border border-gray-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-cyan-500 text-white text-center"
+                                                    />
+                                                    <span className="text-xs text-gray-500">
+                                                        {form.unit}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                                 <div>
                                     <label className="text-xs text-gray-400 mb-1 block">
                                         Deskripsi
@@ -612,48 +650,6 @@ export default function Products({ auth, products, categories, flash }) {
                                         : "Tambah Produk"}
                                 </button>
                             </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Stok per Kios — tampil saat edit */}
-                {editProduct && (
-                    <div>
-                        <label className="text-xs text-gray-400 mb-2 block">
-                            Stok per Kios
-                        </label>
-                        <div className="space-y-2">
-                            {kiosList.map((kios) => (
-                                <div
-                                    key={kios.id}
-                                    className="flex items-center gap-3 bg-[#0d1117] rounded-lg px-3 py-2"
-                                >
-                                    <span className="text-sm text-gray-300 flex-1">
-                                        🏪 {kios.name}
-                                    </span>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        value={form.stocks?.[kios.id] ?? 0}
-                                        onChange={(e) =>
-                                            setForm({
-                                                ...form,
-                                                stocks: {
-                                                    ...form.stocks,
-                                                    [kios.id]:
-                                                        parseInt(
-                                                            e.target.value,
-                                                        ) || 0,
-                                                },
-                                            })
-                                        }
-                                        className="w-24 bg-[#161b22] border border-gray-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-cyan-500 text-white text-center"
-                                    />
-                                    <span className="text-xs text-gray-500">
-                                        {form.unit}
-                                    </span>
-                                </div>
-                            ))}
                         </div>
                     </div>
                 )}
@@ -735,10 +731,12 @@ export default function Products({ auth, products, categories, flash }) {
                                             placeholder="Nama kategori"
                                         />
                                     </div>
+
                                     <div>
                                         <label className="text-xs text-gray-400 mb-1 block">
                                             Deskripsi
                                         </label>
+
                                         <textarea
                                             value={categoryForm.description}
                                             onChange={(e) =>

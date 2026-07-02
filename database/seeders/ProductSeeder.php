@@ -27,19 +27,32 @@ class ProductSeeder extends Seeder
         ];
 
         foreach ($products as $productData) {
-            $product = Product::create([
-                'category_id' => $productData['category_id'],
-                'code'        => $productData['code'],
-                'name'        => $productData['name'],
-                'price'       => $productData['price'],
-                'stock'       => 0, // stock global tidak dipakai lagi
-                'unit'        => $productData['unit'],
-                'is_active'   => true,
-            ]);
+            $product = Product::firstOrCreate(
+                ['code' => $productData['code']],
+                [
+                    'category_id' => $productData['category_id'],
+                    'name'        => $productData['name'],
+                    'price'       => $productData['price'],
+                    'unit'        => $productData['unit'],
+                    'is_active'   => true,
+                ]
+            );
 
-            // Buat stok per kios
-            \App\Models\ProductStock::create(['product_id' => $product->id, 'kios_id' => 1, 'stock' => 50]);
-            \App\Models\ProductStock::create(['product_id' => $product->id, 'kios_id' => 2, 'stock' => 50]);
+            foreach (\App\Models\Kios::all() as $kios) {
+                \App\Models\ProductStock::updateOrCreate(
+                    [
+                        'product_id' => $product->id,
+                        'kios_id'    => $kios->id,
+                    ],
+                    [
+                        'stock' => 50,
+                    ]
+                );
+            }
+
+            // // Buat stok per kios
+            // \App\Models\ProductStock::create(['product_id' => $product->id, 'kios_id' => 1, 'stock' => 50]);
+            // \App\Models\ProductStock::create(['product_id' => $product->id, 'kios_id' => 2, 'stock' => 50]);
         }
     }
 }
