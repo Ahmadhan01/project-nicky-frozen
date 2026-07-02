@@ -1,97 +1,195 @@
-import { Head, router } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { Head, router } from "@inertiajs/react";
+import { useState, useEffect } from "react";
 
 export default function History({ auth, transactions, kiosList, shifts }) {
     const [selectedTransaction, setSelectedTransaction] = useState(null);
-    const [filterKios, setFilterKios] = useState('');
-    const [filterShift, setFilterShift] = useState('');
-    const [filterMethod, setFilterMethod] = useState('');
+    const [filterKios, setFilterKios] = useState("");
+    const [filterShift, setFilterShift] = useState("");
+    const [filterMethod, setFilterMethod] = useState("");
     const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [cachedTransactions, setCachedTransactions] = useState([]);
 
-const [time, setTime] = useState(new Date());
+    const [time, setTime] = useState(new Date());
 
-const [showUserMenu, setShowUserMenu] = useState(false);
-const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+    const [showUserMenu, setShowUserMenu] = useState(false);
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
-// Cache riwayat saat online
+    // Cache riwayat saat online
     useEffect(() => {
-    // Selalu simpan data terbaru ke cache saat online
-    if (navigator.onLine && transactions && transactions.length > 0) {
-        localStorage.setItem('nicky_cached_transactions', JSON.stringify(transactions));
-        localStorage.removeItem('nicky_offline_nav');
-        setCachedTransactions(transactions);
-    } else {
-        // Ambil dari cache
-        const cached = localStorage.getItem('nicky_cached_transactions');
-        if (cached) setCachedTransactions(JSON.parse(cached));
-    }
-}, [transactions]);
+        // Selalu simpan data terbaru ke cache saat online
+        if (navigator.onLine && transactions && transactions.length > 0) {
+            localStorage.setItem(
+                "nicky_cached_transactions",
+                JSON.stringify(transactions),
+            );
+            localStorage.removeItem("nicky_offline_nav");
+            setCachedTransactions(transactions);
+        } else {
+            // Ambil dari cache
+            const cached = localStorage.getItem("nicky_cached_transactions");
+            if (cached) setCachedTransactions(JSON.parse(cached));
+        }
+    }, [transactions]);
 
     // Deteksi online/offline
-   
-useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    useEffect(() => {
+        const handleOnline = () => setIsOnline(true);
+        const handleOffline = () => setIsOnline(false);
 
-    return () => {
-        window.removeEventListener('online', handleOnline);
-        window.removeEventListener('offline', handleOffline);
-    };
-}, []);
+        window.addEventListener("online", handleOnline);
+        window.addEventListener("offline", handleOffline);
+
+        return () => {
+            window.removeEventListener("online", handleOnline);
+            window.removeEventListener("offline", handleOffline);
+        };
+    }, []);
 
     // Gunakan cachedTransactions kalau offline
     const displayTransactions = isOnline ? transactions : cachedTransactions;
 
-useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-}, []);
+    useEffect(() => {
+        const timer = setInterval(() => setTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
 
-    const formatRp = (val) => 'Rp ' + Number(val).toLocaleString('id-ID');
-    const formatDate = (val) => new Date(val).toLocaleString('id-ID', {
-        day: 'numeric', month: 'short', year: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-    });
+    const formatRp = (val) => "Rp " + Number(val).toLocaleString("id-ID");
+    const formatDate = (val) =>
+        new Date(val).toLocaleString("id-ID", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
 
-    const applyFilter = () => {
-        router.get(route('kasir.history'), {
-            kios_id:        filterKios,
-            shift_id:       filterShift,
-            payment_method: filterMethod,
-        }, { preserveState: true });
+    const printReceipt = (transaction) => {
+        const receiptHTML = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Struk - ${transaction.invoice_number}</title>
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { font-family: 'Courier New', monospace; font-size: 12px; color: #000; background: #fff; width: 280px; margin: 0 auto; padding: 16px; }
+                    .center { text-align: center; }
+                    .bold { font-weight: bold; }
+                    .large { font-size: 15px; }
+                    .divider { border-top: 1px dashed #000; margin: 8px 0; }
+                    .row { display: flex; justify-content: space-between; margin: 3px 0; }
+                    .item-name { font-weight: bold; margin-top: 4px; }
+                    .item-detail { color: #555; font-size: 11px; }
+                    .total-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; margin: 4px 0; }
+                    .footer { text-align: center; margin-top: 8px; font-size: 11px; color: #555; }
+                    .cancelled { text-align: center; color: #c00; font-weight: bold; margin-top: 8px; border: 1px dashed #c00; padding: 4px; }
+                </style>
+            </head>
+            <body>
+                <div class="center">
+                    <div class="bold large">NICKY FROZEN</div>
+                    <div>${transaction.kasir_session?.kios?.name ?? ""} | ${transaction.kasir_session?.shift?.name ?? ""}</div>
+                    <div>${new Date(transaction.created_at).toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+                    <div>No: ${transaction.invoice_number}</div>
+                </div>
+                <div class="divider"></div>
+                ${transaction.items
+                    ?.map(
+                        (item) => `
+                    <div>
+                        <div class="row">
+                            <span class="item-name">${item.product?.name}</span>
+                            <span class="bold">Rp ${Number(item.subtotal).toLocaleString("id-ID")}</span>
+                        </div>
+                        <div class="item-detail">${item.quantity} x Rp ${Number(item.price).toLocaleString("id-ID")}</div>
+                    </div>
+                `,
+                    )
+                    .join("")}
+                <div class="divider"></div>
+                <div class="total-row">
+                    <span>TOTAL</span>
+                    <span>Rp ${Number(transaction.total_amount).toLocaleString("id-ID")}</span>
+                </div>
+                <div class="row">
+                    <span>Pembayaran (${transaction.payment_method === "cash" ? "Cash" : "Non-Tunai"})</span>
+                    <span>Rp ${Number(transaction.paid_amount).toLocaleString("id-ID")}</span>
+                </div>
+                <div class="row">
+                    <span>Kembalian</span>
+                    <span>Rp ${Number(transaction.change_amount).toLocaleString("id-ID")}</span>
+                </div>
+                <div class="divider"></div>
+                ${transaction.status === "cancelled" ? '<div class="cancelled">*** TRANSAKSI DIBATALKAN ***</div>' : ""}
+                <div class="footer">
+                    <div>Kasir: ${transaction.user?.name}</div>
+                    <div>Terima kasih telah berbelanja!</div>
+                    <div>Cetak ulang struk pembayaran.</div>
+                </div>
+            </body>
+            </html>
+        `;
+
+        const printWindow = window.open("", "_blank", "width=350,height=600");
+        printWindow.document.write(receiptHTML);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 300);
     };
 
-    
+    const applyFilter = () => {
+        router.get(
+            route("kasir.history"),
+            {
+                kios_id: filterKios,
+                shift_id: filterShift,
+                payment_method: filterMethod,
+            },
+            { preserveState: true },
+        );
+    };
 
-    const logout = () => router.post(route('logout'));
+    const logout = () => router.post(route("logout"));
 
     return (
         <>
             <Head title="Riwayat Transaksi" />
             {!isOnline && (
-    <div className="bg-yellow-900/80 border-b border-yellow-700 px-6 py-3 flex items-center gap-3 text-yellow-300 text-sm">
-        <span>⚠️</span>
-        <span><strong>Mode Offline.</strong> Menampilkan data terakhir yang tersimpan.</span>
-    </div>
-)}
+                <div className="bg-yellow-900/80 border-b border-yellow-700 px-6 py-3 flex items-center gap-3 text-yellow-300 text-sm">
+                    <span>⚠️</span>
+                    <span>
+                        <strong>Mode Offline.</strong> Menampilkan data terakhir
+                        yang tersimpan.
+                    </span>
+                </div>
+            )}
             <div className="h-screen bg-[#0d1117] text-white flex flex-col overflow-hidden">
-
                 {/* Navbar */}
                 <nav className="bg-[#161b22] px-6 py-3 flex items-center justify-between border-b border-gray-800">
                     <div className="flex items-center gap-2">
-                        <img src="/LOGO_NO_TEXT.png" alt="Nicky Frozen" className="h-8 w-8 object-contain" />
-<div>
-    <p className="font-bold text-sm leading-none">Nicky Frozen</p>
-    <p className="text-gray-500 text-xs">SISTEM KASIR</p>
-</div>
+                        <img
+                            src="/LOGO_NO_TEXT.png"
+                            alt="Nicky Frozen"
+                            className="h-8 w-8 object-contain"
+                        />
+                        <div>
+                            <p className="font-bold text-sm leading-none">
+                                Nicky Frozen
+                            </p>
+                            <p className="text-gray-500 text-xs">
+                                SISTEM KASIR
+                            </p>
+                        </div>
                     </div>
                     <div className="flex items-center gap-2">
                         <button
-                            onClick={() => router.visit(route('kasir.dashboard'))}
+                            onClick={() =>
+                                router.visit(route("kasir.dashboard"))
+                            }
                             className="px-4 py-2 rounded-lg text-sm flex items-center gap-2 text-gray-400 hover:text-white"
                         >
                             🛒 Kasir
@@ -101,93 +199,124 @@ useEffect(() => {
                         </button>
                     </div>
                     <div className="flex items-center gap-3">
-                        <span className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
-    isOnline ? 'bg-green-900 text-green-400' : 'bg-red-900 text-red-400'
-}`}>
-    ● {isOnline ? 'Online' : 'Offline'}
-</span>
+                        <span
+                            className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
+                                isOnline
+                                    ? "bg-green-900 text-green-400"
+                                    : "bg-red-900 text-red-400"
+                            }`}
+                        >
+                            ● {isOnline ? "Online" : "Offline"}
+                        </span>
                         <span className="text-sm text-gray-300">
-    {time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-</span>
+                            {time.toLocaleTimeString("id-ID", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            })}
+                        </span>
                         <div className="relative">
-    <button
-        onClick={() => setShowUserMenu(prev => !prev)}
-        className="flex items-center gap-2 hover:opacity-80 transition"
-    >
-        <div className="w-7 h-7 bg-cyan-500 rounded-full flex items-center justify-center text-xs font-bold">
-            {auth.user.name.charAt(0).toUpperCase()}
-        </div>
-        <span className="text-sm">{auth.user.name} ▾</span>
-    </button>
+                            <button
+                                onClick={() => setShowUserMenu((prev) => !prev)}
+                                className="flex items-center gap-2 hover:opacity-80 transition"
+                            >
+                                <div className="w-7 h-7 bg-cyan-500 rounded-full flex items-center justify-center text-xs font-bold">
+                                    {auth.user.name.charAt(0).toUpperCase()}
+                                </div>
+                                <span className="text-sm">
+                                    {auth.user.name} ▾
+                                </span>
+                            </button>
 
-    {showUserMenu && (
-        <>
-            {/* Backdrop */}
-            <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
+                            {showUserMenu && (
+                                <>
+                                    {/* Backdrop */}
+                                    <div
+                                        className="fixed inset-0 z-40"
+                                        onClick={() => setShowUserMenu(false)}
+                                    />
 
-            {/* Dropdown */}
-            <div className="absolute right-0 mt-2 w-48 bg-[#161b22] border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-700">
-                    <p className="text-sm font-semibold text-white">{auth.user.name}</p>
-                    <p className="text-xs text-gray-400">{auth.user.email}</p>
-                    <span className="text-xs bg-cyan-900/50 text-cyan-400 px-2 py-0.5 rounded-full mt-1 inline-block capitalize">
-                        {auth.user.role}
-                    </span>
-                </div>
-                <button
-                    onClick={logout}
-                    className="w-full px-4 py-3 text-left text-sm text-red-400 hover:bg-red-900/30 transition flex items-center gap-2"
-                >
-                    🚪 Logout
-                </button>
-            </div>
-        </>
-    )}
-</div>
+                                    {/* Dropdown */}
+                                    <div className="absolute right-0 mt-2 w-48 bg-[#161b22] border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
+                                        <div className="px-4 py-3 border-b border-gray-700">
+                                            <p className="text-sm font-semibold text-white">
+                                                {auth.user.name}
+                                            </p>
+                                            <p className="text-xs text-gray-400">
+                                                {auth.user.email}
+                                            </p>
+                                            <span className="text-xs bg-cyan-900/50 text-cyan-400 px-2 py-0.5 rounded-full mt-1 inline-block capitalize">
+                                                {auth.user.role}
+                                            </span>
+                                        </div>
+                                        <button
+                                            onClick={logout}
+                                            className="w-full px-4 py-3 text-left text-sm text-red-400 hover:bg-red-900/30 transition flex items-center gap-2"
+                                        >
+                                            🚪 Logout
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </nav>
 
                 {/* Content */}
                 {/* Content */}
-<div className="flex-1 flex flex-col overflow-hidden p-6">
-
+                <div className="flex-1 flex flex-col overflow-hidden p-6">
                     {/* Title */}
                     <div className="mb-4">
                         <h1 className="text-xl font-bold">Riwayat Transaksi</h1>
-                        <p className="text-gray-400 text-sm">Semua transaksi yang telah diproses</p>
+                        <p className="text-gray-400 text-sm">
+                            Semua transaksi yang telah diproses
+                        </p>
                     </div>
 
                     {/* Filter */}
                     <div className="flex gap-3 mb-5 flex-wrap">
                         <select
                             value={filterKios}
-                            onChange={e => { setFilterKios(e.target.value); }}
+                            onChange={(e) => {
+                                setFilterKios(e.target.value);
+                            }}
                             onBlur={applyFilter}
                             className="bg-[#161b22] border border-gray-700 text-sm rounded-lg px-3 py-2 text-white outline-none"
                         >
                             <option value="">Semua Kios</option>
-                            {kiosList.map(k => <option key={k.id} value={k.id}>{k.name}</option>)}
+                            {kiosList.map((k) => (
+                                <option key={k.id} value={k.id}>
+                                    {k.name}
+                                </option>
+                            ))}
                         </select>
 
                         <select
                             value={filterShift}
-                            onChange={e => { setFilterShift(e.target.value); }}
+                            onChange={(e) => {
+                                setFilterShift(e.target.value);
+                            }}
                             onBlur={applyFilter}
                             className="bg-[#161b22] border border-gray-700 text-sm rounded-lg px-3 py-2 text-white outline-none"
                         >
                             <option value="">Semua Shift</option>
-                            {shifts.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                            {shifts.map((s) => (
+                                <option key={s.id} value={s.id}>
+                                    {s.name}
+                                </option>
+                            ))}
                         </select>
 
                         <select
                             value={filterMethod}
-                            onChange={e => { setFilterMethod(e.target.value); }}
+                            onChange={(e) => {
+                                setFilterMethod(e.target.value);
+                            }}
                             onBlur={applyFilter}
                             className="bg-[#161b22] border border-gray-700 text-sm rounded-lg px-3 py-2 text-white outline-none"
                         >
                             <option value="">Semua Metode</option>
-<option value="cash">Tunai</option>
-<option value="non-tunai">Non-Tunai</option>
+                            <option value="cash">Tunai</option>
+                            <option value="non-tunai">Non-Tunai</option>
                         </select>
 
                         <button
@@ -200,52 +329,108 @@ useEffect(() => {
 
                     {/* Tabel */}
                     {/* Tabel */}
-<div className="flex-1 overflow-y-auto bg-[#161b22] rounded-xl border border-gray-800 overflow-hidden">
+                    <div className="flex-1 overflow-y-auto bg-[#161b22] rounded-xl border border-gray-800 overflow-hidden">
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-gray-800 text-gray-400 text-xs uppercase">
-                                    <th className="px-4 py-3 text-left">ID Transaksi</th>
-                                    <th className="px-4 py-3 text-left">Waktu</th>
-                                    <th className="px-4 py-3 text-left">Kios</th>
-                                    <th className="px-4 py-3 text-left">Shift</th>
-                                    <th className="px-4 py-3 text-left">Items</th>
-                                    <th className="px-4 py-3 text-left">Total</th>
-                                    <th className="px-4 py-3 text-left">Metode</th>
-                                    <th className="px-4 py-3 text-left">Status</th>
-                                    <th className="px-4 py-3 text-left">Aksi</th>
+                                    <th className="px-4 py-3 text-left">
+                                        ID Transaksi
+                                    </th>
+                                    <th className="px-4 py-3 text-left">
+                                        Waktu
+                                    </th>
+                                    <th className="px-4 py-3 text-left">
+                                        Kios
+                                    </th>
+                                    <th className="px-4 py-3 text-left">
+                                        Shift
+                                    </th>
+                                    <th className="px-4 py-3 text-left">
+                                        Items
+                                    </th>
+                                    <th className="px-4 py-3 text-left">
+                                        Total
+                                    </th>
+                                    <th className="px-4 py-3 text-left">
+                                        Metode
+                                    </th>
+                                    <th className="px-4 py-3 text-left">
+                                        Status
+                                    </th>
+                                    <th className="px-4 py-3 text-left">
+                                        Aksi
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {displayTransactions.length === 0 ? (
                                     <tr>
-                                        <td colSpan={9} className="text-center py-10 text-gray-500">
+                                        <td
+                                            colSpan={9}
+                                            className="text-center py-10 text-gray-500"
+                                        >
                                             Belum ada transaksi
                                         </td>
                                     </tr>
                                 ) : (
-                                    displayTransactions.map(trx => (
-                                        <tr key={trx.id} className="border-b border-gray-800 hover:bg-[#1f2937] transition">
-                                            <td className="px-4 py-3 font-mono text-xs text-gray-300">{trx.invoice_number}</td>
-                                            <td className="px-4 py-3 text-gray-300">{formatDate(trx.created_at)}</td>
-                                            <td className="px-4 py-3 text-gray-300">{trx.kasir_session?.kios?.name ?? '-'}</td>
-                                            <td className="px-4 py-3 text-gray-300">{trx.kasir_session?.shift?.name ?? '-'}</td>
-                                            <td className="px-4 py-3 text-gray-300">{trx.items?.length} item</td>
-                                            <td className="px-4 py-3 font-bold text-white">{formatRp(trx.total_amount)}</td>
+                                    displayTransactions.map((trx) => (
+                                        <tr
+                                            key={trx.id}
+                                            className="border-b border-gray-800 hover:bg-[#1f2937] transition"
+                                        >
+                                            <td className="px-4 py-3 font-mono text-xs text-gray-300">
+                                                {trx.invoice_number}
+                                            </td>
+                                            <td className="px-4 py-3 text-gray-300">
+                                                {formatDate(trx.created_at)}
+                                            </td>
+                                            <td className="px-4 py-3 text-gray-300">
+                                                {trx.kasir_session?.kios
+                                                    ?.name ?? "-"}
+                                            </td>
+                                            <td className="px-4 py-3 text-gray-300">
+                                                {trx.kasir_session?.shift
+                                                    ?.name ?? "-"}
+                                            </td>
+                                            <td className="px-4 py-3 text-gray-300">
+                                                {trx.items?.length} item
+                                            </td>
+                                            <td className="px-4 py-3 font-bold text-white">
+                                                {formatRp(trx.total_amount)}
+                                            </td>
                                             <td className="px-4 py-3">
                                                 <span className="bg-green-900/50 text-green-400 text-xs px-2 py-1 rounded-full flex items-center gap-1 w-fit">
-                                                    💵 {trx.payment_method === 'cash' ? 'Cash' : trx.payment_method === 'transfer' ? 'Transfer' : 'QRIS'}
+                                                    💵{" "}
+                                                    {trx.payment_method ===
+                                                    "cash"
+                                                        ? "Cash"
+                                                        : trx.payment_method ===
+                                                            "transfer"
+                                                          ? "Transfer"
+                                                          : "QRIS"}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3">
-    <span className={`text-xs flex items-center gap-1 ${
-        trx.status === 'cancelled' ? 'text-red-400' : 'text-green-400'
-    }`}>
-        {trx.status === 'cancelled' ? '✕ Dibatalkan' : '✓ Selesai'}
-    </span>
-</td>
+                                                <span
+                                                    className={`text-xs flex items-center gap-1 ${
+                                                        trx.status ===
+                                                        "cancelled"
+                                                            ? "text-red-400"
+                                                            : "text-green-400"
+                                                    }`}
+                                                >
+                                                    {trx.status === "cancelled"
+                                                        ? "✕ Dibatalkan"
+                                                        : "✓ Selesai"}
+                                                </span>
+                                            </td>
                                             <td className="px-4 py-3">
                                                 <button
-                                                    onClick={() => setSelectedTransaction(trx)}
+                                                    onClick={() =>
+                                                        setSelectedTransaction(
+                                                            trx,
+                                                        )
+                                                    }
                                                     className="bg-[#0d1117] border border-gray-700 hover:border-cyan-500 text-xs px-3 py-1.5 rounded-lg transition"
                                                 >
                                                     Detail
@@ -263,73 +448,143 @@ useEffect(() => {
                 {selectedTransaction && (
                     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
                         <div className="bg-[#161b22] rounded-2xl w-full max-w-lg border border-gray-700 shadow-2xl flex flex-col max-h-[90vh]">
-
                             {/* Header */}
                             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
                                 <div className="flex items-center gap-2">
                                     <span>📄</span>
-                                    <span className="font-bold">Detail Transaksi</span>
+                                    <span className="font-bold">
+                                        Detail Transaksi
+                                    </span>
                                 </div>
-                                <button onClick={() => setSelectedTransaction(null)} className="text-gray-400 hover:text-white">✕</button>
+                                <button
+                                    onClick={() => setSelectedTransaction(null)}
+                                    className="text-gray-400 hover:text-white"
+                                >
+                                    ✕
+                                </button>
                             </div>
 
                             {/* Info Grid */}
                             <div className="p-6 space-y-4 overflow-auto flex-1">
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="bg-[#0d1117] rounded-xl p-3">
-                                        <p className="text-xs text-gray-500 mb-1">ID TRANSAKSI</p>
-                                        <p className="text-sm font-mono font-medium">{selectedTransaction.invoice_number}</p>
+                                        <p className="text-xs text-gray-500 mb-1">
+                                            ID TRANSAKSI
+                                        </p>
+                                        <p className="text-sm font-mono font-medium">
+                                            {selectedTransaction.invoice_number}
+                                        </p>
                                     </div>
                                     <div className="bg-[#0d1117] rounded-xl p-3">
-                                        <p className="text-xs text-gray-500 mb-1">WAKTU</p>
-                                        <p className="text-sm font-medium">{formatDate(selectedTransaction.created_at)}</p>
+                                        <p className="text-xs text-gray-500 mb-1">
+                                            WAKTU
+                                        </p>
+                                        <p className="text-sm font-medium">
+                                            {formatDate(
+                                                selectedTransaction.created_at,
+                                            )}
+                                        </p>
                                     </div>
                                     <div className="bg-[#0d1117] rounded-xl p-3">
-                                        <p className="text-xs text-gray-500 mb-1">KIOS</p>
-                                        <p className="text-sm font-medium">{selectedTransaction.kasir_session?.kios?.name ?? '-'}</p>
+                                        <p className="text-xs text-gray-500 mb-1">
+                                            KIOS
+                                        </p>
+                                        <p className="text-sm font-medium">
+                                            {selectedTransaction.kasir_session
+                                                ?.kios?.name ?? "-"}
+                                        </p>
                                     </div>
                                     <div className="bg-[#0d1117] rounded-xl p-3">
-                                        <p className="text-xs text-gray-500 mb-1">SHIFT</p>
-                                        <p className="text-sm font-medium">{selectedTransaction.kasir_session?.shift?.name ?? '-'}</p>
+                                        <p className="text-xs text-gray-500 mb-1">
+                                            SHIFT
+                                        </p>
+                                        <p className="text-sm font-medium">
+                                            {selectedTransaction.kasir_session
+                                                ?.shift?.name ?? "-"}
+                                        </p>
                                     </div>
                                     <div className="bg-[#0d1117] rounded-xl p-3">
-                                        <p className="text-xs text-gray-500 mb-1">KASIR</p>
-                                        <p className="text-sm font-medium">{selectedTransaction.user?.name}</p>
+                                        <p className="text-xs text-gray-500 mb-1">
+                                            KASIR
+                                        </p>
+                                        <p className="text-sm font-medium">
+                                            {selectedTransaction.user?.name}
+                                        </p>
                                     </div>
                                     <div className="bg-[#0d1117] rounded-xl p-3">
-                                        <p className="text-xs text-gray-500 mb-1">METODE</p>
+                                        <p className="text-xs text-gray-500 mb-1">
+                                            METODE
+                                        </p>
                                         <p className="text-sm font-medium flex items-center gap-1">
-                                            <span className="text-green-400">💵</span>
-                                            {selectedTransaction.payment_method === 'cash' ? 'Cash' : selectedTransaction.payment_method === 'transfer' ? 'Transfer' : 'QRIS'}
+                                            <span className="text-green-400">
+                                                💵
+                                            </span>
+                                            {selectedTransaction.payment_method ===
+                                            "cash"
+                                                ? "Cash"
+                                                : selectedTransaction.payment_method ===
+                                                    "transfer"
+                                                  ? "Transfer"
+                                                  : "QRIS"}
                                         </p>
                                     </div>
                                 </div>
 
                                 {/* Detail Item */}
                                 <div>
-                                    <p className="text-sm font-semibold mb-2">Detail Item</p>
+                                    <p className="text-sm font-semibold mb-2">
+                                        Detail Item
+                                    </p>
                                     <div className="bg-[#0d1117] rounded-xl overflow-hidden">
                                         <table className="w-full text-xs">
                                             <thead>
                                                 <tr className="border-b border-gray-800 text-gray-500">
-                                                    <th className="px-3 py-2 text-left">PRODUK</th>
-                                                    <th className="px-3 py-2 text-center">QTY</th>
-                                                    <th className="px-3 py-2 text-right">HARGA</th>
-                                                    <th className="px-3 py-2 text-right">SUBTOTAL</th>
+                                                    <th className="px-3 py-2 text-left">
+                                                        PRODUK
+                                                    </th>
+                                                    <th className="px-3 py-2 text-center">
+                                                        QTY
+                                                    </th>
+                                                    <th className="px-3 py-2 text-right">
+                                                        HARGA
+                                                    </th>
+                                                    <th className="px-3 py-2 text-right">
+                                                        SUBTOTAL
+                                                    </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {selectedTransaction.items?.map((item, i) => (
-                                                    <tr key={i} className="border-b border-gray-800">
-                                                        <td className="px-3 py-2 flex items-center gap-2">
-                                                            <span className="bg-gray-800 p-1 rounded">🍱</span>
-                                                            {item.product?.name}
-                                                        </td>
-                                                        <td className="px-3 py-2 text-center">{item.quantity}</td>
-                                                        <td className="px-3 py-2 text-right">{formatRp(item.price)}</td>
-                                                        <td className="px-3 py-2 text-right">{formatRp(item.subtotal)}</td>
-                                                    </tr>
-                                                ))}
+                                                {selectedTransaction.items?.map(
+                                                    (item, i) => (
+                                                        <tr
+                                                            key={i}
+                                                            className="border-b border-gray-800"
+                                                        >
+                                                            <td className="px-3 py-2 flex items-center gap-2">
+                                                                <span className="bg-gray-800 p-1 rounded">
+                                                                    🍱
+                                                                </span>
+                                                                {
+                                                                    item.product
+                                                                        ?.name
+                                                                }
+                                                            </td>
+                                                            <td className="px-3 py-2 text-center">
+                                                                {item.quantity}
+                                                            </td>
+                                                            <td className="px-3 py-2 text-right">
+                                                                {formatRp(
+                                                                    item.price,
+                                                                )}
+                                                            </td>
+                                                            <td className="px-3 py-2 text-right">
+                                                                {formatRp(
+                                                                    item.subtotal,
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    ),
+                                                )}
                                             </tbody>
                                         </table>
                                     </div>
@@ -338,35 +593,67 @@ useEffect(() => {
                                 {/* Total */}
                                 <div className="space-y-1 text-sm">
                                     <div className="flex justify-between">
-                                        <span className="text-gray-400">Total</span>
-                                        <span className="font-bold">{formatRp(selectedTransaction.total_amount)}</span>
+                                        <span className="text-gray-400">
+                                            Total
+                                        </span>
+                                        <span className="font-bold">
+                                            {formatRp(
+                                                selectedTransaction.total_amount,
+                                            )}
+                                        </span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-gray-400">Dibayar</span>
-                                        <span>{formatRp(selectedTransaction.paid_amount)}</span>
+                                        <span className="text-gray-400">
+                                            Dibayar
+                                        </span>
+                                        <span>
+                                            {formatRp(
+                                                selectedTransaction.paid_amount,
+                                            )}
+                                        </span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-cyan-400">Kembalian</span>
-                                        <span className="text-cyan-400 font-semibold">{formatRp(selectedTransaction.change_amount)}</span>
+                                        <span className="text-cyan-400">
+                                            Kembalian
+                                        </span>
+                                        <span className="text-cyan-400 font-semibold">
+                                            {formatRp(
+                                                selectedTransaction.change_amount,
+                                            )}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex gap-3 px-6 pb-6">
-                                {selectedTransaction.status !== 'cancelled' && (
+                            <div className="px-6 pb-6 space-y-2">
+                                {selectedTransaction.status !== "cancelled" && (
                                     <button
-                                        onClick={() => setShowCancelConfirm(true)}
-                                        className="flex-1 py-2.5 rounded-xl bg-red-900/50 hover:bg-red-800 text-red-400 text-sm font-semibold transition"
+                                        onClick={() =>
+                                            setShowCancelConfirm(true)
+                                        }
+                                        className="w-full py-2.5 rounded-xl bg-red-900/50 hover:bg-red-800 text-red-400 text-sm font-semibold transition"
                                     >
                                         🚫 Batalkan Transaksi
                                     </button>
                                 )}
-                                <button
-                                    onClick={() => setSelectedTransaction(null)}
-                                    className="flex-1 py-2.5 rounded-xl border border-gray-600 text-sm font-semibold hover:bg-gray-800 transition"
-                                >
-                                    Tutup
-                                </button>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() =>
+                                            printReceipt(selectedTransaction)
+                                        }
+                                        className="flex-1 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-semibold transition flex items-center justify-center gap-2"
+                                    >
+                                        🖨️ Cetak Struk
+                                    </button>
+                                    <button
+                                        onClick={() =>
+                                            setSelectedTransaction(null)
+                                        }
+                                        className="flex-1 py-2.5 rounded-xl border border-gray-600 text-sm font-semibold hover:bg-gray-800 transition"
+                                    >
+                                        Tutup
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -380,9 +667,14 @@ useEffect(() => {
                                 <div className="w-14 h-14 rounded-full bg-red-500/20 flex items-center justify-center mb-4 text-2xl">
                                     ⚠️
                                 </div>
-                                <p className="text-white font-semibold text-base">Batalkan Transaksi?</p>
+                                <p className="text-white font-semibold text-base">
+                                    Batalkan Transaksi?
+                                </p>
                                 <p className="text-gray-400 text-xs mt-2">
-                                    Transaksi {selectedTransaction.invoice_number} akan dibatalkan. Stok akan dikembalikan secara otomatis.
+                                    Transaksi{" "}
+                                    {selectedTransaction.invoice_number} akan
+                                    dibatalkan. Stok akan dikembalikan secara
+                                    otomatis.
                                 </p>
                             </div>
                             <div className="flex border-t border-gray-700">
@@ -394,12 +686,21 @@ useEffect(() => {
                                 </button>
                                 <button
                                     onClick={() => {
-                                        router.patch(route('kasir.transaction.cancel', selectedTransaction.id), {}, {
-                                            onSuccess: () => {
-                                                setShowCancelConfirm(false);
-                                                setSelectedTransaction(null);
+                                        router.patch(
+                                            route(
+                                                "kasir.transaction.cancel",
+                                                selectedTransaction.id,
+                                            ),
+                                            {},
+                                            {
+                                                onSuccess: () => {
+                                                    setShowCancelConfirm(false);
+                                                    setSelectedTransaction(
+                                                        null,
+                                                    );
+                                                },
                                             },
-                                        });
+                                        );
                                     }}
                                     className="flex-1 py-3 text-sm font-semibold text-red-400 hover:bg-red-500/20 transition"
                                 >
@@ -409,7 +710,6 @@ useEffect(() => {
                         </div>
                     </div>
                 )}
-                
             </div>
         </>
     );

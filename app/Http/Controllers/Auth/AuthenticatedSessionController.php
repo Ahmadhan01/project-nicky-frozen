@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -11,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
 
+
 class AuthenticatedSessionController extends Controller
 {
     /**
@@ -20,26 +20,34 @@ class AuthenticatedSessionController extends Controller
     {
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
-            'status' => session('status'),
+            'status'           => session('status'),
         ]);
     }
 
     /**
      * Handle an incoming authentication request.
      */
-public function store(LoginRequest $request): RedirectResponse
-{
-    $request->authenticate();
-    $request->session()->regenerate();
+    public function store(LoginRequest $request): RedirectResponse
+    {
+        $request->authenticate();
+        $request->session()->regenerate();
 
-    $role = auth()->user()->role;
+        $user = auth()->user();
 
-    if ($role === 'owner' || $role === 'admin') {
-        return redirect()->route('admin.dashboard');
+        // Batasi 1 sesi aktif untuk kasir — sesi lama di device lain otomatis logout
+        if ($user->role === 'kasir') {
+            \DB::table('sessions')
+                ->where('user_id', $user->id)
+                ->where('id', '!=', $request->session()->getId())
+                ->delete();
+        }
+
+        if ($user->role === 'owner' || $user->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return redirect()->route('kasir.dashboard');
     }
-
-    return redirect()->route('kasir.dashboard');
-}
 
     /**
      * Destroy an authenticated session.
