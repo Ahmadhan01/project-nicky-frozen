@@ -35,11 +35,23 @@ export default function Products({
 
     const formatRp = (val) => "Rp " + Number(val).toLocaleString("id-ID");
 
+    const generateNextCode = () => {
+        const prefix = "NF-";
+        const numbers = products
+            .map((p) => p.code)
+            .filter((code) => code && code.startsWith(prefix))
+            .map((code) => parseInt(code.replace(prefix, ""), 10))
+            .filter((n) => !isNaN(n));
+
+        const nextNumber = numbers.length > 0 ? Math.max(...numbers) + 1 : 1;
+        return prefix + String(nextNumber).padStart(3, "0");
+    };
+
     const openAdd = () => {
         setEditProduct(null);
         setForm({
             name: "",
-            code: "",
+            code: generateNextCode(),
             category_id: "",
             price: "",
             unit: "pcs",
@@ -359,7 +371,7 @@ export default function Products({
                                 >
                                     {/* Badge Aktif/Nonaktif */}
                                     <div
-                                        className={`absolute top-2 left-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white z-10 ${
+                                        className={`absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white z-10 ${
                                             product.is_active
                                                 ? "bg-green-500"
                                                 : "bg-red-500"
@@ -426,8 +438,8 @@ export default function Products({
                 {/* Modal Tambah/Edit Produk */}
                 {showModal && (
                     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                        <div className="bg-[#161b22] rounded-2xl w-full max-w-lg border border-gray-700 shadow-2xl">
-                            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
+                        <div className="bg-[#161b22] rounded-2xl w-full max-w-lg border border-gray-700 shadow-2xl max-h-[90vh] flex flex-col">
+                            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700 shrink-0">
                                 <h2 className="font-bold">
                                     {editProduct
                                         ? "✏️ Edit Produk"
@@ -440,7 +452,7 @@ export default function Products({
                                     ✕
                                 </button>
                             </div>
-                            <div className="p-6 space-y-3">
+                            <div className="p-6 space-y-3 overflow-y-auto">
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
                                         <label className="text-xs text-gray-400 mb-1 block">
@@ -538,7 +550,7 @@ export default function Products({
                                     </div>
                                 </div>
                                 {/* Stok per Kios — tampil saat edit */}
-                            
+
                                 {kiosList && kiosList.length > 0 && (
                                     <div>
                                         <label className="text-xs text-gray-400 mb-2 block">
@@ -634,7 +646,7 @@ export default function Products({
                                     </label>
                                 </div>
                             </div>
-                            <div className="flex gap-3 px-6 pb-6">
+                            <div className="flex gap-3 px-6 pb-6 pt-3 border-t border-gray-700 shrink-0">
                                 <button
                                     onClick={() => setShowModal(false)}
                                     className="flex-1 py-2.5 rounded-xl border border-gray-600 text-sm hover:bg-gray-800 transition"
