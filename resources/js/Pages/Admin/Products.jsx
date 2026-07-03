@@ -246,9 +246,10 @@ export default function Products({
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        
                         <button
-                            onClick={() => router.visit(route("admin.dashboard"))}
+                            onClick={() =>
+                                router.visit(route("admin.dashboard"))
+                            }
                             className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
                         >
                             🏠 Dashboard
@@ -640,14 +641,26 @@ export default function Products({
                                             Harga
                                         </label>
                                         <input
-                                            type="number"
-                                            value={form.price}
-                                            onChange={(e) =>
+                                            type="text"
+                                            inputMode="numeric"
+                                            value={
+                                                form.price
+                                                    ? Number(
+                                                          form.price,
+                                                      ).toLocaleString("id-ID")
+                                                    : ""
+                                            }
+                                            onChange={(e) => {
+                                                const digitsOnly =
+                                                    e.target.value.replace(
+                                                        /\D/g,
+                                                        "",
+                                                    );
                                                 setForm({
                                                     ...form,
-                                                    price: e.target.value,
-                                                })
-                                            }
+                                                    price: digitsOnly,
+                                                });
+                                            }}
                                             className="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-500 text-white"
                                             placeholder="0"
                                         />
@@ -680,18 +693,14 @@ export default function Products({
                                     </label>
                                     <input
                                         type="date"
-                                        value={
-                                            form.expiry_date
-                                                ? form.expiry_date.slice(0, 10)
-                                                : ""
-                                        }
+                                        value={form.expiry_date ?? ""}
                                         onChange={(e) =>
                                             setForm({
                                                 ...form,
                                                 expiry_date: e.target.value,
                                             })
                                         }
-                                        className="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-500 text-white"
+                                        className="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-500 text-white [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                                     />
                                 </div>
                                 <div>
@@ -739,22 +748,37 @@ export default function Products({
                                                         value={
                                                             form.stocks?.[
                                                                 kios.id
-                                                            ] ?? 0
+                                                            ] === 0 ||
+                                                            form.stocks?.[
+                                                                kios.id
+                                                            ] === undefined
+                                                                ? ""
+                                                                : form.stocks[
+                                                                      kios.id
+                                                                  ]
                                                         }
-                                                        onChange={(e) =>
+                                                        onChange={(e) => {
+                                                            const val =
+                                                                e.target.value;
                                                             setForm({
                                                                 ...form,
                                                                 stocks: {
                                                                     ...form.stocks,
                                                                     [kios.id]:
-                                                                        parseInt(
-                                                                            e
-                                                                                .target
-                                                                                .value,
-                                                                        ) || 0,
+                                                                        val ===
+                                                                        ""
+                                                                            ? 0
+                                                                            : parseInt(
+                                                                                  val,
+                                                                              ) ||
+                                                                              0,
                                                                 },
-                                                            })
+                                                            });
+                                                        }}
+                                                        onFocus={(e) =>
+                                                            e.target.select()
                                                         }
+                                                        placeholder="0"
                                                         className="w-24 bg-[#161b22] border border-gray-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-cyan-500 text-white text-center"
                                                     />
                                                     <span className="text-xs text-gray-500">
@@ -814,12 +838,14 @@ export default function Products({
                                     </label>
                                 </div>
                             </div>
-                            
+
                             {Object.keys(formErrors).length > 0 && (
                                 <div className="mx-6 mb-3 bg-red-900/40 border border-red-800 text-red-400 text-xs rounded-lg px-3 py-2 space-y-1">
-                                    {Object.entries(formErrors).map(([field, msg]) => (
-                                        <p key={field}>⚠️ {msg}</p>
-                                    ))}
+                                    {Object.entries(formErrors).map(
+                                        ([field, msg]) => (
+                                            <p key={field}>⚠️ {msg}</p>
+                                        ),
+                                    )}
                                 </div>
                             )}
                             <div className="flex gap-3 px-6 pb-6 pt-3 border-t border-gray-700 shrink-0">
