@@ -41,10 +41,11 @@ class ProductController extends Controller
             'unit'        => 'required|string',
             'description' => 'nullable|string',
             'is_active'   => 'boolean',
+            'expiry_date' => 'nullable|date',
         ]);
 
         $product = Product::create($request->only([
-            'name', 'code', 'category_id', 'price', 'unit', 'description', 'is_active',
+            'name', 'code', 'category_id', 'price', 'unit', 'description', 'is_active', 'expiry_date',
         ]));
 
         $stocksInput = collect($request->stocks ?? [])->keyBy('kios_id');
@@ -72,10 +73,11 @@ class ProductController extends Controller
             'unit'        => 'required|string',
             'description' => 'nullable|string',
             'is_active'   => 'boolean',
+            'expiry_date' => 'nullable|date',
         ]);
 
         $product->update($request->only([
-            'name', 'code', 'category_id', 'price', 'unit', 'description', 'is_active',
+            'name', 'code', 'category_id', 'price', 'unit', 'description', 'is_active', 'expiry_date',
         ]));
 
         AuditLog::record('product', "Produk \"{$product->name}\" diupdate", ['product_id' => $product->id, 'name' => $product->name]);

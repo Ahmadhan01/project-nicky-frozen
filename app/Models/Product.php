@@ -17,11 +17,13 @@ class Product extends Model
         'unit',
         'image',
         'is_active',
+        'expiry_date',
     ];
 
     protected $casts = [
-        'price'     => 'decimal:2',
-        'is_active' => 'boolean',
+        'price'       => 'decimal:2',
+        'is_active'   => 'boolean',
+        'expiry_date' => 'date',
     ];
 
     protected $appends = ['total_stock'];

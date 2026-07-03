@@ -20,6 +20,7 @@ export default function Products({
         unit: "pcs",
         description: "",
         is_active: true,
+        expiry_date: "",
         stocks: {},
     });
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
@@ -34,6 +35,25 @@ export default function Products({
     const [showUserMenu, setShowUserMenu] = useState(false);
 
     const formatRp = (val) => "Rp " + Number(val).toLocaleString("id-ID");
+
+    const getExpiryStatus = (expiryDate) => {
+        if (!expiryDate) return null;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const exp = new Date(expiryDate);
+        const diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+
+        if (diffDays < 0) {
+            return { label: "Kadaluarsa", color: "bg-red-500 text-white" };
+        }
+        if (diffDays <= 7) {
+            return {
+                label: `H-${diffDays}`,
+                color: "bg-orange-500 text-white",
+            };
+        }
+        return null;
+    };
 
     const generateNextCode = () => {
         const prefix = "NF-";
@@ -57,6 +77,7 @@ export default function Products({
             unit: "pcs",
             description: "",
             is_active: true,
+            expiry_date: "",
             stocks: {}, // diisi lewat input "Stok per Kios"
         });
         setShowModal(true);
@@ -80,6 +101,7 @@ export default function Products({
             unit: product.unit,
             description: product.description ?? "",
             is_active: product.is_active,
+            expiry_date: product.expiry_date ?? "",
             stocks: stocksMap,
         });
         setShowModal(true);
@@ -380,6 +402,23 @@ export default function Products({
                                         {product.is_active ? "✓" : "✕"}
                                     </div>
 
+                                    {/* Badge Kadaluarsa */}
+                                    {getExpiryStatus(product.expiry_date) && (
+                                        <div
+                                            className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold z-10 ${
+                                                getExpiryStatus(
+                                                    product.expiry_date,
+                                                ).color
+                                            }`}
+                                        >
+                                            {
+                                                getExpiryStatus(
+                                                    product.expiry_date,
+                                                ).label
+                                            }
+                                        </div>
+                                    )}
+
                                     <div className="bg-[#0d1117] rounded-lg p-4 flex items-center justify-center mb-3">
                                         <span className="text-2xl">🍱</span>
                                     </div>
@@ -392,6 +431,18 @@ export default function Products({
                                     <p className="text-cyan-400 font-bold text-sm">
                                         {formatRp(product.price)}
                                     </p>
+                                    {product.expiry_date && (
+                                        <p className="text-[11px] text-gray-500">
+                                            Exp:{" "}
+                                            {new Date(
+                                                product.expiry_date,
+                                            ).toLocaleDateString("id-ID", {
+                                                day: "2-digit",
+                                                month: "short",
+                                                year: "numeric",
+                                            })}
+                                        </p>
+                                    )}
                                     <p
                                         className={`text-xs mb-2 ${(product.stocks?.reduce((a, s) => a + s.stock, 0) ?? 0) === 0 ? "text-red-400" : "text-gray-500"}`}
                                     >
@@ -549,6 +600,22 @@ export default function Products({
                                         </select>
                                     </div>
                                 </div>
+                                <div>
+                                    <label className="text-xs text-gray-400 mb-1 block">
+                                        Tanggal Kadaluarsa (opsional)
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={form.expiry_date ?? ""}
+                                        onChange={(e) =>
+                                            setForm({
+                                                ...form,
+                                                expiry_date: e.target.value,
+                                            })
+                                        }
+                                        className="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-500 text-white"
+                                    />
+                                </div>
                                 {/* Stok per Kios — tampil saat edit */}
 
                                 {kiosList && kiosList.length > 0 && (
@@ -665,7 +732,6 @@ export default function Products({
                         </div>
                     </div>
                 )}
-
                 {/* Modal Konfirmasi Hapus */}
                 {showDeleteConfirm && (
                     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
