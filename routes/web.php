@@ -21,9 +21,7 @@ Route::middleware(['auth', 'role:admin,kasir,owner'])->prefix('kasir')->name('ka
 
 // Route Admin (tanpa Master)
 Route::middleware(['auth', 'role:admin,owner'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function () {
-        return redirect()->route('admin.products');
-    })->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/history', [\App\Http\Controllers\Admin\HistoryController::class, 'index'])->name('history');
     Route::patch('/transaction/{transaction}/cancel', [\App\Http\Controllers\Kasir\TransactionController::class, 'cancel'])->name('transaction.cancel');

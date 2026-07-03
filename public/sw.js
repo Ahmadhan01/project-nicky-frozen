@@ -29,6 +29,9 @@ self.addEventListener('fetch', (event) => {
 
     const url = new URL(event.request.url);
 
+    // Lewati request dari ekstensi browser atau skema non-http (tidak bisa di-cache)
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+
     // Cache halaman kasir
     const isKasirPage = url.pathname === '/kasir/dashboard' || url.pathname === '/kasir/history';
 

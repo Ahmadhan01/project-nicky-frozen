@@ -37,15 +37,15 @@ class ProductController extends Controller
             'code'        => 'required|string|unique:products,code',
             'category_id' => 'required|exists:categories,id',
             'price'       => 'required|numeric|min:0',
-            'stock'       => 'required|integer|min:0',
             'unit'        => 'required|string',
             'description' => 'nullable|string',
             'is_active'   => 'boolean',
             'expiry_date' => 'nullable|date',
+            'min_stock'   => 'nullable|integer|min:0',
         ]);
 
         $product = Product::create($request->only([
-            'name', 'code', 'category_id', 'price', 'unit', 'description', 'is_active', 'expiry_date',
+            'name', 'code', 'category_id', 'price', 'unit', 'description', 'is_active', 'expiry_date', 'min_stock',
         ]));
 
         $stocksInput = collect($request->stocks ?? [])->keyBy('kios_id');
@@ -74,10 +74,11 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'is_active'   => 'boolean',
             'expiry_date' => 'nullable|date',
+            'min_stock'   => 'nullable|integer|min:0',
         ]);
 
         $product->update($request->only([
-            'name', 'code', 'category_id', 'price', 'unit', 'description', 'is_active', 'expiry_date',
+            'name', 'code', 'category_id', 'price', 'unit', 'description', 'is_active', 'expiry_date', 'min_stock',
         ]));
 
         AuditLog::record('product', "Produk \"{$product->name}\" diupdate", ['product_id' => $product->id, 'name' => $product->name]);
@@ -145,14 +146,34 @@ class ProductController extends Controller
             'stocks.*.stock'   => 'required|integer|min:0',
         ]);
 
+        $changes = [];
+
         foreach ($request->stocks as $stockData) {
+            $existing = \App\Models\ProductStock::where('product_id', $product->id)
+                ->where('kios_id', $stockData['kios_id'])
+                ->first();
+
+            $before = $existing->stock ?? 0;
+            $after  = (int) $stockData['stock'];
+
             \App\Models\ProductStock::updateOrCreate(
                 ['product_id' => $product->id, 'kios_id' => $stockData['kios_id']],
-                ['stock' => $stockData['stock']]
+                ['stock' => $after]
             );
+
+            if ($before !== $after) {
+                $kiosName  = \App\Models\Kios::find($stockData['kios_id'])?->name ?? 'Kios';
+                $diff      = $after - $before;
+                $changes[] = "{$kiosName}: {$before}→{$after} (" . ($diff > 0 ? "+{$diff}" : $diff) . ")";
+            }
         }
 
-        AuditLog::record('product', "Stok produk {$product->name} diperbarui per kios");
+        if (count($changes) > 0) {
+            AuditLog::record(
+                'product',
+                "Stok \"{$product->name}\" diperbarui — " . implode(', ', $changes),
+            );
+        }
 
         return back()->with('success', 'Stok produk berhasil diperbarui!');
     }

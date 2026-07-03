@@ -21,6 +21,7 @@ export default function Products({
         description: "",
         is_active: true,
         expiry_date: "",
+        min_stock: 5,
         stocks: {},
     });
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
@@ -33,6 +34,7 @@ export default function Products({
     const [showDeleteCategory, setShowDeleteCategory] = useState(null);
 
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const [formErrors, setFormErrors] = useState({});
 
     const formatRp = (val) => "Rp " + Number(val).toLocaleString("id-ID");
 
@@ -69,6 +71,7 @@ export default function Products({
 
     const openAdd = () => {
         setEditProduct(null);
+        setFormErrors({});
         setForm({
             name: "",
             code: generateNextCode(),
@@ -78,6 +81,7 @@ export default function Products({
             description: "",
             is_active: true,
             expiry_date: "",
+            min_stock: 5,
             stocks: {}, // diisi lewat input "Stok per Kios"
         });
         setShowModal(true);
@@ -85,6 +89,7 @@ export default function Products({
 
     const openEdit = (product) => {
         setEditProduct(product);
+        setFormErrors({});
 
         // Load stok per kios
         const stocksMap = {};
@@ -101,7 +106,10 @@ export default function Products({
             unit: product.unit,
             description: product.description ?? "",
             is_active: product.is_active,
-            expiry_date: product.expiry_date ?? "",
+            expiry_date: product.expiry_date
+                ? product.expiry_date.slice(0, 10)
+                : "",
+            min_stock: product.min_stock ?? 5,
             stocks: stocksMap,
         });
         setShowModal(true);
@@ -123,13 +131,23 @@ export default function Products({
                         { onSuccess: () => setShowModal(false) },
                     );
                 },
+                onError: (errors) => {
+                    console.error("Gagal update produk:", errors);
+                    setFormErrors(errors);
+                },
             });
         } else {
             // Produk baru: stok awal tiap kios dikirim sekalian
             router.post(
                 route("admin.products.store"),
                 { ...form, stocks: stocksToArray() },
-                { onSuccess: () => setShowModal(false) },
+                {
+                    onSuccess: () => setShowModal(false),
+                    onError: (errors) => {
+                        console.error("Gagal tambah produk:", errors);
+                        setFormErrors(errors);
+                    },
+                },
             );
         }
     };
@@ -228,6 +246,13 @@ export default function Products({
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
+                        
+                        <button
+                            onClick={() => router.visit(route("admin.dashboard"))}
+                            className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
+                        >
+                            🏠 Dashboard
+                        </button>
                         <button
                             onClick={() => router.visit(route("admin.history"))}
                             className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
@@ -353,6 +378,14 @@ export default function Products({
                         </div>
                     )}
 
+                    {/* Peringatan stok menipis */}
+                    {products.filter((p) => p.is_low_stock).length > 0 && (
+                        <div className="mb-4 bg-yellow-900/30 text-yellow-400 border border-yellow-800 px-4 py-3 rounded-xl text-sm">
+                            ⚠️ {products.filter((p) => p.is_low_stock).length}{" "}
+                            produk stok menipis, segera restock.
+                        </div>
+                    )}
+
                     {/* Search */}
                     <div className="flex items-center bg-[#161b22] rounded-xl px-4 py-3 mb-4 gap-2 border border-gray-800">
                         <span className="text-gray-500">🔍</span>
@@ -419,6 +452,38 @@ export default function Products({
                                         </div>
                                     )}
 
+                                    {/* Badge Kadaluarsa */}
+                                    {getExpiryStatus(product.expiry_date) && (
+                                        <div
+                                            className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold z-10 ${
+                                                getExpiryStatus(
+                                                    product.expiry_date,
+                                                ).color
+                                            }`}
+                                        >
+                                            {
+                                                getExpiryStatus(
+                                                    product.expiry_date,
+                                                ).label
+                                            }
+                                        </div>
+                                    )}
+
+                                    {/* Badge Stok Menipis */}
+                                    {product.is_low_stock && (
+                                        <div
+                                            className={`absolute px-2 py-0.5 rounded-full text-[10px] font-bold z-10 bg-yellow-500 text-black ${
+                                                getExpiryStatus(
+                                                    product.expiry_date,
+                                                )
+                                                    ? "top-8 left-2"
+                                                    : "top-2 left-2"
+                                            }`}
+                                        >
+                                            ⚠️ Menipis
+                                        </div>
+                                    )}
+
                                     <div className="bg-[#0d1117] rounded-lg p-4 flex items-center justify-center mb-3">
                                         <span className="text-2xl">🍱</span>
                                     </div>
@@ -456,7 +521,16 @@ export default function Products({
                                     {/* Progress Stok (total semua kios) */}
                                     <div className="w-full bg-gray-700 rounded-full h-1 mb-3">
                                         <div
-                                            className="bg-cyan-500 h-1 rounded-full"
+                                            className={`h-1 rounded-full ${
+                                                (product.stocks?.reduce(
+                                                    (a, s) => a + s.stock,
+                                                    0,
+                                                ) ?? 0) === 0
+                                                    ? "bg-red-500"
+                                                    : product.is_low_stock
+                                                      ? "bg-yellow-500"
+                                                      : "bg-cyan-500"
+                                            }`}
                                             style={{
                                                 width: `${Math.min(100, ((product.stocks?.reduce((a, s) => a + s.stock, 0) ?? 0) / 100) * 100)}%`,
                                             }}
@@ -606,7 +680,11 @@ export default function Products({
                                     </label>
                                     <input
                                         type="date"
-                                        value={form.expiry_date ?? ""}
+                                        value={
+                                            form.expiry_date
+                                                ? form.expiry_date.slice(0, 10)
+                                                : ""
+                                        }
                                         onChange={(e) =>
                                             setForm({
                                                 ...form,
@@ -616,7 +694,30 @@ export default function Products({
                                         className="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-500 text-white"
                                     />
                                 </div>
-                                {/* Stok per Kios — tampil saat edit */}
+                                <div>
+                                    <label className="text-xs text-gray-400 mb-1 block">
+                                        Ambang Stok Menipis
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={form.min_stock}
+                                        onChange={(e) =>
+                                            setForm({
+                                                ...form,
+                                                min_stock:
+                                                    parseInt(e.target.value) ||
+                                                    0,
+                                            })
+                                        }
+                                        className="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-500 text-white"
+                                        placeholder="5"
+                                    />
+                                    <p className="text-[11px] text-gray-500 mt-1">
+                                        Muncul peringatan kalau total stok semua
+                                        kios ≤ angka ini
+                                    </p>
+                                </div>
 
                                 {kiosList && kiosList.length > 0 && (
                                     <div>
@@ -713,6 +814,14 @@ export default function Products({
                                     </label>
                                 </div>
                             </div>
+                            
+                            {Object.keys(formErrors).length > 0 && (
+                                <div className="mx-6 mb-3 bg-red-900/40 border border-red-800 text-red-400 text-xs rounded-lg px-3 py-2 space-y-1">
+                                    {Object.entries(formErrors).map(([field, msg]) => (
+                                        <p key={field}>⚠️ {msg}</p>
+                                    ))}
+                                </div>
+                            )}
                             <div className="flex gap-3 px-6 pb-6 pt-3 border-t border-gray-700 shrink-0">
                                 <button
                                     onClick={() => setShowModal(false)}

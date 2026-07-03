@@ -120,7 +120,7 @@ export default function Dashboard({
 
     // Produk dengan stok menipis (real-time, ikut isi keranjang)
     const lowStockProducts = productsWithRemaining.filter(
-        (p) => p.remainingStock > 0 && p.remainingStock <= 5,
+        (p) => p.remainingStock > 0 && p.remainingStock <= (p.min_stock ?? 5),
     );
 
     // Tambah ke keranjang — batasi sesuai stok
