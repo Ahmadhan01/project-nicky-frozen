@@ -814,72 +814,108 @@ export default function Dashboard({
                                 cart.map((item) => (
                                     <div
                                         key={item.id}
-                                        className="flex items-center gap-2"
+                                        className="flex flex-col gap-2 pb-3 border-b border-gray-800/60 last:border-0 last:pb-0"
                                     >
-                                        <div className="bg-[#0d1117] p-2 rounded-lg">
-                                            <span className="text-lg">🍱</span>
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-xs font-medium truncate">
-                                                {item.name}
-                                            </p>
-                                            <p className="text-xs text-gray-400">
-                                                {formatRp(item.price)}
-                                            </p>
-                                        </div>
-                                        <div className="flex items-center gap-1">
+                                        {/* Baris atas: ikon, nama, harga satuan, hapus */}
+                                        <div className="flex items-center gap-2">
+                                            <div className="bg-[#0d1117] p-2 rounded-lg shrink-0">
+                                                <span className="text-lg">
+                                                    🍱
+                                                </span>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-medium truncate">
+                                                    {item.name}
+                                                </p>
+                                                <p className="text-xs text-gray-400">
+                                                    {formatRp(item.price)}
+                                                </p>
+                                            </div>
                                             <button
                                                 onClick={() =>
-                                                    updateQty(item.id, -1)
+                                                    removeItem(item.id)
                                                 }
-                                                className="w-6 h-6 bg-[#0d1117] rounded text-sm hover:bg-gray-700 flex items-center justify-center"
+                                                className="text-red-400 hover:text-red-300 text-sm shrink-0"
                                             >
-                                                -
-                                            </button>
-                                            <input
-                                                type="text"
-                                                inputMode="numeric"
-                                                value={
-                                                    item.qtyInput !== undefined
-                                                        ? item.qtyInput
-                                                        : item.qty
-                                                }
-                                                onChange={(e) =>
-                                                    setQtyDirect(
-                                                        item.id,
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                onBlur={() =>
-                                                    commitQtyInput(item.id)
-                                                }
-                                                onFocus={(e) =>
-                                                    e.target.select()
-                                                }
-                                                onKeyDown={(e) =>
-                                                    e.key === "Enter" &&
-                                                    e.target.blur()
-                                                }
-                                                className="w-8 h-6 bg-[#0d1117] border border-gray-600 rounded text-xs text-center text-white outline-none focus:border-cyan-500"
-                                            />
-                                            <button
-                                                onClick={() =>
-                                                    updateQty(item.id, 1)
-                                                }
-                                                className="w-6 h-6 bg-[#0d1117] rounded text-sm hover:bg-gray-700 flex items-center justify-center"
-                                            >
-                                                +
+                                                ✕
                                             </button>
                                         </div>
-                                        <span className="text-xs text-white min-w-fit">
-                                            {formatRp(item.price * item.qty)}
-                                        </span>
-                                        <button
-                                            onClick={() => removeItem(item.id)}
-                                            className="text-red-400 hover:text-red-300 text-sm"
-                                        >
-                                            ✕
-                                        </button>
+
+                                        {/* Baris bawah: kontrol qty & subtotal */}
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    onClick={() =>
+                                                        updateQty(item.id, -1)
+                                                    }
+                                                    className="w-8 h-8 bg-[#0d1117] rounded text-base hover:bg-gray-700 flex items-center justify-center"
+                                                >
+                                                    -
+                                                </button>
+                                                <input
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    pattern="[0-9]*"
+                                                    value={
+                                                        item.qtyInput !==
+                                                        undefined
+                                                            ? item.qtyInput
+                                                            : item.qty
+                                                    }
+                                                    onChange={(e) =>
+                                                        setQtyDirect(
+                                                            item.id,
+                                                            e.target.value.replace(
+                                                                /\D/g,
+                                                                "",
+                                                            ),
+                                                        )
+                                                    }
+                                                    onKeyDown={(e) => {
+                                                        const allowedKeys = [
+                                                            "Backspace",
+                                                            "Delete",
+                                                            "ArrowLeft",
+                                                            "ArrowRight",
+                                                            "Tab",
+                                                            "Enter",
+                                                        ];
+                                                        if (
+                                                            !/^[0-9]$/.test(
+                                                                e.key,
+                                                            ) &&
+                                                            !allowedKeys.includes(
+                                                                e.key,
+                                                            )
+                                                        ) {
+                                                            e.preventDefault();
+                                                        }
+                                                        if (e.key === "Enter")
+                                                            e.target.blur();
+                                                    }}
+                                                    onBlur={() =>
+                                                        commitQtyInput(item.id)
+                                                    }
+                                                    onFocus={(e) =>
+                                                        e.target.select()
+                                                    }
+                                                    className="w-12 h-8 bg-[#0d1117] border border-gray-600 rounded text-sm text-center text-white outline-none focus:border-cyan-500"
+                                                />
+                                                <button
+                                                    onClick={() =>
+                                                        updateQty(item.id, 1)
+                                                    }
+                                                    className="w-8 h-8 bg-[#0d1117] rounded text-base hover:bg-gray-700 flex items-center justify-center"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+                                            <span className="text-xs text-white min-w-fit">
+                                                {formatRp(
+                                                    item.price * item.qty,
+                                                )}
+                                            </span>
+                                        </div>
                                     </div>
                                 ))
                             )}
@@ -927,9 +963,21 @@ export default function Dashboard({
                                         type="text"
                                         placeholder="Rp 0"
                                         value={paidAmount}
-                                        onChange={(e) =>
-                                            setPaidAmount(e.target.value)
-                                        }
+                                        onChange={(e) => {
+                                            const digitsOnly =
+                                                e.target.value.replace(
+                                                    /\D/g,
+                                                    "",
+                                                );
+                                            setPaidAmount(
+                                                digitsOnly
+                                                    ? Number(
+                                                          digitsOnly,
+                                                      ).toLocaleString("id-ID")
+                                                    : "",
+                                            );
+                                        }}
+                                        inputMode="numeric"
                                         className="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-500 text-white"
                                     />
                                     <div className="flex justify-between text-sm text-gray-400">
