@@ -58,6 +58,7 @@ export default function Recap({
     const nonCashPercent = 100 - cashPercent;
 
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const [showHelpModal, setShowHelpModal] = useState(false);
 
     const pieData = [
         { name: "Cash", value: stats.cash_total, color: "#22d3ee" },
@@ -127,6 +128,7 @@ export default function Recap({
                         <button className="bg-[#1f2937] px-4 py-2 rounded-lg text-sm text-cyan-400 flex items-center gap-2">
                             📊 Rekap
                         </button>
+
                         <button
                             onClick={() => router.visit(route("admin.audit"))}
                             className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
@@ -143,6 +145,13 @@ export default function Recap({
                                 👑 Master
                             </button>
                         )}
+
+                        <button
+                            onClick={() => setShowHelpModal(true)}
+                            className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
+                        >
+                            ❓ Bantuan
+                        </button>
                     </div>
                     <div className="flex items-center gap-3">
                         <span className="bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">
@@ -525,6 +534,160 @@ export default function Recap({
                         </div>
                     </div>
                 </div>
+
+                {/* Modal Bantuan Halaman Rekap */}
+                {showHelpModal && (
+                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+                        <div className="bg-[#161b22] rounded-2xl w-full max-w-lg border border-gray-700 max-h-[85vh] flex flex-col">
+                            {/* Header */}
+                            <div className="flex items-center justify-between p-5 border-b border-gray-700">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-2xl">❓</span>
+                                    <h2 className="text-lg font-bold">
+                                        Panduan Membaca Rekap
+                                    </h2>
+                                </div>
+                                <button
+                                    onClick={() => setShowHelpModal(false)}
+                                    className="text-gray-400 hover:text-white text-xl"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+
+                            {/* Isi Panduan - Scrollable */}
+                            <div className="overflow-y-auto p-5 space-y-4">
+                                <div className="flex gap-3">
+                                    <span className="text-xl">🎛️</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            1. Memilih Kios & Periode
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Pilih <strong>Kios</strong> kalau
+                                            mau lihat laporan kios tertentu
+                                            saja, dan pilih periode (
+                                            <strong>
+                                                Harian/Mingguan/ Bulanan
+                                            </strong>
+                                            ), lalu tekan{" "}
+                                            <strong>"Tampilkan"</strong>.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">💰</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            2. Kartu Ringkasan
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            4 kotak di atas menunjukkan{" "}
+                                            <strong>Total Pendapatan</strong>{" "}
+                                            (semua transaksi),{" "}
+                                            <strong>Pembayaran Cash</strong>,{" "}
+                                            <strong>Non-Cash (QRIS)</strong>,
+                                            dan{" "}
+                                            <strong>
+                                                Rata-rata per Transaksi
+                                            </strong>{" "}
+                                            sesuai kios & periode yang dipilih.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">📈</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            3. Grafik Penjualan per Hari
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Grafik batang menunjukkan naik-
+                                            turunnya pendapatan dari hari ke
+                                            hari. Makin tinggi batang, makin
+                                            besar pendapatan hari itu.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">💳</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            4. Grafik Metode Pembayaran
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Diagram lingkaran menunjukkan
+                                            perbandingan pelanggan yang bayar{" "}
+                                            <strong>Tunai</strong> vs{" "}
+                                            <strong>Non-Tunai</strong>. Angka di
+                                            tengah adalah total jumlah
+                                            transaksi.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">🏆</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            5. Tabel Produk Terlaris
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Tabel di bawah menunjukkan produk
+                                            mana yang paling banyak terjual,
+                                            beserta kontribusinya (%) terhadap
+                                            total pendapatan. Berguna buat tahu
+                                            produk mana yang paling laku.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">📥</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            6. Export CSV
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Tekan{" "}
+                                            <strong>"📥 Export CSV"</strong>{" "}
+                                            untuk mengunduh laporan produk
+                                            terlaris dalam bentuk file yang bisa
+                                            dibuka di Excel/Google Sheets.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">📞</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            Masih Bingung?
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Hubungi developer/admin teknis kalau
+                                            ada kendala yang tidak bisa diatasi
+                                            sendiri.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-5 border-t border-gray-700">
+                                <button
+                                    onClick={() => setShowHelpModal(false)}
+                                    className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg transition"
+                                >
+                                    Mengerti
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </>
     );

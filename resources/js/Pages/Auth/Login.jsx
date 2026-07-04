@@ -164,6 +164,17 @@ export default function Login() {
                             {processing ? "Loading..." : "Login"}
                         </button>
                     </form>
+
+                    {/* Catatan Bantuan */}
+                    <div className="mt-6 pt-5 border-t border-gray-700 text-center">
+                        <p className="text-gray-500 text-xs leading-relaxed">
+                            Gunakan username & password yang diberikan oleh
+                            admin/pemilik toko.
+                            <br />
+                            Lupa password atau tidak bisa login? Hubungi admin,
+                            jangan coba-coba login sembarangan.
+                        </p>
+                    </div>
                 </div>
             </div>
         </>

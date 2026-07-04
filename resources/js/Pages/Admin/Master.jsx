@@ -30,6 +30,7 @@ export default function Master({ auth, users, kiosList, shifts, flash }) {
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [time, setTime] = useState(new Date());
     const [alertMessage, setAlertMessage] = useState(null);
+    const [showHelpModal, setShowHelpModal] = useState(false);
 
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date()), 1000);
@@ -139,8 +140,10 @@ export default function Master({ auth, users, kiosList, shifts, flash }) {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                         <button
-                            onClick={() => router.visit(route("admin.dashboard"))}
+                        <button
+                            onClick={() =>
+                                router.visit(route("admin.dashboard"))
+                            }
                             className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
                         >
                             🏠 Dashboard
@@ -173,6 +176,12 @@ export default function Master({ auth, users, kiosList, shifts, flash }) {
                         </button>
                         <button className="bg-[#1f2937] px-4 py-2 rounded-lg text-sm text-cyan-400 flex items-center gap-2">
                             👑 Master
+                        </button>
+                        <button
+                            onClick={() => setShowHelpModal(true)}
+                            className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
+                        >
+                            ❓ Bantuan
                         </button>
                     </div>
                     <div className="flex items-center gap-3">
@@ -806,6 +815,155 @@ export default function Master({ auth, users, kiosList, shifts, flash }) {
                                     className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-semibold transition"
                                 >
                                     Hapus
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal Bantuan Halaman Master */}
+                {showHelpModal && (
+                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+                        <div className="bg-[#161b22] rounded-2xl w-full max-w-lg border border-gray-700 max-h-[85vh] flex flex-col">
+                            {/* Header */}
+                            <div className="flex items-center justify-between p-5 border-b border-gray-700">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-2xl">❓</span>
+                                    <h2 className="text-lg font-bold">
+                                        Panduan Kelola Pengguna
+                                    </h2>
+                                </div>
+                                <button
+                                    onClick={() => setShowHelpModal(false)}
+                                    className="text-gray-400 hover:text-white text-xl"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+
+                            {/* Isi Panduan - Scrollable */}
+                            <div className="overflow-y-auto p-5 space-y-4">
+                                <div className="flex gap-3">
+                                    <span className="text-xl">👥</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            1. Bedanya Kasir, Admin, dan Owner
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            <strong>Kasir</strong>: hanya bisa
+                                            buka halaman transaksi & riwayat.{" "}
+                                            <strong>Admin</strong>: bisa kelola
+                                            produk, laporan, dan riwayat, tapi
+                                            tidak bisa kelola pengguna lain.{" "}
+                                            <strong>Owner</strong>: akses penuh,
+                                            termasuk halaman ini (Master).
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">➕</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            2. Menambah Pengguna Baru
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Tekan{" "}
+                                            <strong>"+ Tambah Pengguna"</strong>
+                                            , isi nama, email, pilih role (
+                                            <strong>Kasir</strong> atau{" "}
+                                            <strong>Admin</strong>), dan buat
+                                            password minimal 8 karakter. Kalau
+                                            role Kasir, tentukan juga kios
+                                            tempat dia biasa bertugas.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">🔑</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            3. Reset Password Pengguna
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Buka <strong>Edit</strong> pada
+                                            pengguna yang lupa password, lalu
+                                            isi kolom password dengan yang baru.
+                                            Kalau kolom password dikosongkan
+                                            saat edit, password lama tetap
+                                            dipakai (tidak berubah).
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">👁️</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            4. Memantau Status Kerja
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Tekan foto/nama pengguna untuk
+                                            melihat profil lengkapnya, termasuk
+                                            status{" "}
+                                            <strong className="text-green-400">
+                                                Online
+                                            </strong>{" "}
+                                            dan kios tempatnya bertugas saat ini
+                                            secara real-time.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">🗑️</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            5. Menghapus Pengguna
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Tekan{" "}
+                                            <strong className="text-red-400">
+                                                "🗑️ Hapus"
+                                            </strong>{" "}
+                                            pada pengguna yang sudah tidak
+                                            bekerja lagi.
+                                            <br />
+                                            <span className="text-yellow-400">
+                                                ⚠️ Akun yang dihapus TIDAK BISA
+                                                dikembalikan. Jangan hapus akun
+                                                kasir yang masih sedang
+                                                bertugas/login — pastikan dulu
+                                                dia sedang tidak dalam shift
+                                                kerja.
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">📞</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            Masih Bingung?
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Hubungi developer/admin teknis kalau
+                                            ada kendala yang tidak bisa diatasi
+                                            sendiri.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-5 border-t border-gray-700">
+                                <button
+                                    onClick={() => setShowHelpModal(false)}
+                                    className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg transition"
+                                >
+                                    Mengerti
                                 </button>
                             </div>
                         </div>

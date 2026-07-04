@@ -43,6 +43,7 @@ export default function Audit({ auth, logs }) {
     const [time, setTime] = useState(new Date());
 
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const [showHelpModal, setShowHelpModal] = useState(false);
 
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date()), 1000);
@@ -110,6 +111,13 @@ export default function Audit({ auth, logs }) {
                                 👑 Master
                             </button>
                         )}
+
+                        <button
+                            onClick={() => setShowHelpModal(true)}
+                            className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
+                        >
+                            ❓ Bantuan
+                        </button>
                     </div>
                     <div className="flex items-center gap-3">
                         <span className="bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">
@@ -219,8 +227,154 @@ export default function Audit({ auth, logs }) {
                                 );
                             })
                         )}
-                    </div>
+
+                        </div>
                 </div>
+
+                {/* Modal Bantuan Halaman Audit */}
+                {showHelpModal && (
+                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+                        <div className="bg-[#161b22] rounded-2xl w-full max-w-lg border border-gray-700 max-h-[85vh] flex flex-col">
+                            {/* Header */}
+                            <div className="flex items-center justify-between p-5 border-b border-gray-700">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-2xl">❓</span>
+                                    <h2 className="text-lg font-bold">
+                                        Panduan Audit Trail
+                                    </h2>
+                                </div>
+                                <button
+                                    onClick={() => setShowHelpModal(false)}
+                                    className="text-gray-400 hover:text-white text-xl"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+
+                            {/* Isi Panduan - Scrollable */}
+                            <div className="overflow-y-auto p-5 space-y-4">
+                                <div className="flex gap-3">
+                                    <span className="text-xl">📋</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            1. Apa itu Audit Trail?
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Ini adalah "catatan sejarah"
+                                            semua kejadian penting di
+                                            sistem — siapa melakukan apa
+                                            dan kapan. Berguna buat
+                                            menelusuri kalau ada data yang
+                                            janggal.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">🎨</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            2. Arti Warna & Ikon
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            <span className="text-green-400">
+                                                ✅ Hijau
+                                            </span>{" "}
+                                            = aktivitas transaksi (jual/
+                                            batal).{" "}
+                                            <span className="text-blue-400">
+                                                ⚙️ Biru
+                                            </span>{" "}
+                                            = sesi kerja kasir (buka/tutup
+                                            shift).{" "}
+                                            <span className="text-yellow-400">
+                                                📦 Kuning
+                                            </span>{" "}
+                                            = perubahan data produk (tambah/
+                                            edit/hapus).
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">🔎</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            3. Membaca Satu Baris Log
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Setiap baris menunjukkan{" "}
+                                            <strong>apa</strong> yang
+                                            terjadi (deskripsi),{" "}
+                                            <strong>siapa</strong> yang
+                                            melakukan (nama pengguna), dan{" "}
+                                            <strong>kapan</strong> (tanggal
+                                            & jam).
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">🔄</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            4. Update Otomatis
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Halaman ini menyegarkan diri
+                                            otomatis setiap 5 detik. Kamu
+                                            tidak perlu refresh manual
+                                            untuk melihat aktivitas
+                                            terbaru.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">💡</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            5. Kapan Halaman Ini Dipakai?
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Buka halaman ini kalau ada
+                                            kejadian aneh — misalnya stok
+                                            tiba-tiba berubah atau ada
+                                            transaksi yang dibatalkan tanpa
+                                            sepengetahuanmu. Dari sini bisa
+                                            dicek siapa pelakunya dan
+                                            kapan.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">📞</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            Masih Bingung?
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Hubungi developer/admin teknis
+                                            kalau ada kendala yang tidak
+                                            bisa diatasi sendiri.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-5 border-t border-gray-700">
+                                <button
+                                    onClick={() => setShowHelpModal(false)}
+                                    className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg transition"
+                                >
+                                    Mengerti
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </>
     );

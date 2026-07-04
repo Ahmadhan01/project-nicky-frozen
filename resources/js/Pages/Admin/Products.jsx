@@ -35,6 +35,7 @@ export default function Products({
 
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [formErrors, setFormErrors] = useState({});
+     const [showHelpModal, setShowHelpModal] = useState(false);
 
     const formatRp = (val) => "Rp " + Number(val).toLocaleString("id-ID");
 
@@ -285,6 +286,13 @@ export default function Products({
                                 👑 Master
                             </button>
                         )}
+                        <button
+                            onClick={() => setShowHelpModal(true)}
+                            className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
+                        >
+                            ❓ Bantuan
+                        </button>
+                    
                     </div>
                     <div className="flex items-center gap-3">
                         <span className="bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">
@@ -1067,6 +1075,185 @@ export default function Products({
                                 className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-semibold transition"
                             >
                                 Hapus
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Bantuan Halaman Produk */}
+            {showHelpModal && (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+                    <div className="bg-[#161b22] rounded-2xl w-full max-w-lg border border-gray-700 max-h-[85vh] flex flex-col">
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-5 border-b border-gray-700">
+                            <div className="flex items-center gap-3">
+                                <span className="text-2xl">❓</span>
+                                <h2 className="text-lg font-bold text-white">
+                                    Panduan Manajemen Produk
+                                </h2>
+                            </div>
+                            <button
+                                onClick={() => setShowHelpModal(false)}
+                                className="text-gray-400 hover:text-white text-xl"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Isi Panduan - Scrollable */}
+                        <div className="overflow-y-auto p-5 space-y-4">
+                            <div className="flex gap-3">
+                                <span className="text-xl">➕</span>
+                                <div>
+                                    <p className="font-semibold text-sm text-white">
+                                        1. Menambah Produk Baru
+                                    </p>
+                                    <p className="text-gray-400 text-sm mt-1">
+                                        Tekan tombol{" "}
+                                        <strong>"+ Produk"</strong> di pojok
+                                        kanan atas. Isi nama, harga, dan
+                                        kategori produk, lalu tekan{" "}
+                                        <strong>"Tambah"</strong>.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <span className="text-xl">✏️</span>
+                                <div>
+                                    <p className="font-semibold text-sm text-white">
+                                        2. Mengedit Produk
+                                    </p>
+                                    <p className="text-gray-400 text-sm mt-1">
+                                        Tekan tombol{" "}
+                                        <strong>"✏️ Edit"</strong> di kartu
+                                        produk untuk mengubah nama, harga,
+                                        atau kategorinya.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <span className="text-xl">📦</span>
+                                <div>
+                                    <p className="font-semibold text-sm text-white">
+                                        3. Mengatur Stok per Kios
+                                    </p>
+                                    <p className="text-gray-400 text-sm mt-1">
+                                        Di form Tambah/Edit Produk, ada
+                                        bagian <strong>"Stok per Kios"</strong>
+                                        . Isi jumlah stok untuk masing-
+                                        masing kios secara terpisah — jadi
+                                        setiap kios punya stok sendiri-
+                                        sendiri, tidak digabung.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <span className="text-xl">⚠️</span>
+                                <div>
+                                    <p className="font-semibold text-sm text-white">
+                                        4. Ambang Stok Menipis
+                                    </p>
+                                    <p className="text-gray-400 text-sm mt-1">
+                                        Kolom <strong>"Ambang Stok
+                                        Menipis"</strong> menentukan kapan
+                                        produk dianggap "hampir habis" dan
+                                        memunculkan peringatan kuning di
+                                        halaman ini. Contoh: diisi 5 berarti
+                                        peringatan muncul saat stok tersisa
+                                        5 atau kurang.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <span className="text-xl">🗑️</span>
+                                <div>
+                                    <p className="font-semibold text-sm text-white">
+                                        5. Menghapus Produk
+                                    </p>
+                                    <p className="text-gray-400 text-sm mt-1">
+                                        Tekan{" "}
+                                        <strong className="text-red-400">
+                                            "🗑️ Hapus"
+                                        </strong>{" "}
+                                        pada kartu produk.
+                                        <br />
+                                        <span className="text-yellow-400">
+                                            ⚠️ Produk yang dihapus TIDAK
+                                            BISA dikembalikan lagi. Kalau
+                                            cuma mau produk sementara tidak
+                                            dijual, sebaiknya jangan dihapus
+                                            — cukup atur stoknya jadi 0.
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <span className="text-xl">🗂️</span>
+                                <div>
+                                    <p className="font-semibold text-sm text-white">
+                                        6. Kelola Kategori
+                                    </p>
+                                    <p className="text-gray-400 text-sm mt-1">
+                                        Tekan tombol{" "}
+                                        <strong>"🗂️ Kategori"</strong> untuk
+                                        menambah, mengedit, atau menghapus
+                                        kategori (misal: "Makanan Beku",
+                                        "Minuman").
+                                        <br />
+                                        <span className="text-yellow-400">
+                                            ⚠️ Menghapus kategori juga
+                                            bersifat permanen. Pastikan
+                                            tidak ada produk penting yang
+                                            masih memakai kategori tersebut
+                                            sebelum menghapusnya.
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <span className="text-xl">🔍</span>
+                                <div>
+                                    <p className="font-semibold text-sm text-white">
+                                        7. Mencari & Menyaring Produk
+                                    </p>
+                                    <p className="text-gray-400 text-sm mt-1">
+                                        Ketik nama produk di kolom pencarian,
+                                        atau klik tombol kategori untuk
+                                        menampilkan produk dari kategori
+                                        tertentu saja.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <span className="text-xl">📞</span>
+                                <div>
+                                   <p className="font-semibold text-sm text-white">
+                                        Masih Bingung?
+                                    </p>
+                                    <p className="text-gray-400 text-sm mt-1">
+                                        Hubungi developer/admin teknis kalau
+                                        ada kendala yang tidak bisa
+                                        diatasi sendiri.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-5 border-t border-gray-700">
+                            <button
+                                onClick={() => setShowHelpModal(false)}
+                                className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg transition"
+                            >
+                                Mengerti
                             </button>
                         </div>
                     </div>

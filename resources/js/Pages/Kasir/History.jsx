@@ -13,6 +13,7 @@ export default function History({ auth, transactions, kiosList, shifts }) {
 
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+    const [showHelpModal, setShowHelpModal] = useState(false);
 
     // Cache riwayat saat online
     useEffect(() => {
@@ -196,6 +197,12 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                         </button>
                         <button className="bg-[#1f2937] px-4 py-2 rounded-lg text-sm flex items-center gap-2 text-cyan-400">
                             📋 Riwayat
+                        </button>
+                        <button
+                            onClick={() => setShowHelpModal(true)}
+                            className="px-4 py-2 rounded-lg text-sm flex items-center gap-2 text-gray-400 hover:text-white"
+                        >
+                            ❓ Bantuan
                         </button>
                     </div>
                     <div className="flex items-center gap-3">
@@ -705,6 +712,184 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                     className="flex-1 py-3 text-sm font-semibold text-red-400 hover:bg-red-500/20 transition"
                                 >
                                     Batalkan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal Bantuan Halaman Riwayat */}
+                {showHelpModal && (
+                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+                        <div className="bg-[#161b22] rounded-2xl w-full max-w-lg border border-gray-700 max-h-[85vh] flex flex-col">
+                            {/* Header */}
+                            <div className="flex items-center justify-between p-5 border-b border-gray-700">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-2xl">❓</span>
+                                    <h2 className="text-lg font-bold">
+                                        Panduan Halaman Riwayat
+                                    </h2>
+                                </div>
+                                <button
+                                    onClick={() => setShowHelpModal(false)}
+                                    className="text-gray-400 hover:text-white text-xl"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+
+                            {/* Isi Panduan - Scrollable */}
+                            <div className="overflow-y-auto p-5 space-y-4">
+                                <div className="flex gap-3">
+                                    <span className="text-xl">📋</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            1. Melihat Daftar Transaksi
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Halaman ini menampilkan semua
+                                            transaksi yang pernah dibuat,
+                                            lengkap dengan ID, waktu, dan
+                                            statusnya.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">🔎</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            2. Menyaring (Filter) Transaksi
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Gunakan pilihan{" "}
+                                            <strong>Kios</strong>,{" "}
+                                            <strong>Shift</strong>, atau{" "}
+                                            <strong>Metode Bayar</strong> di
+                                            bagian atas tabel, lalu tekan tombol{" "}
+                                            <strong>"Filter"</strong> untuk
+                                            mempersempit hasil pencarian.
+                                            Contoh: mau lihat transaksi Tunai
+                                            shift pagi saja.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">🧾</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            3. Melihat Detail Transaksi
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Tekan tombol{" "}
+                                            <strong>"Detail"</strong> pada baris
+                                            transaksi yang ingin dilihat. Akan
+                                            muncul rincian barang yang dibeli,
+                                            total, uang dibayar, dan kembalian.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">🖨️</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            4. Cetak Ulang Struk
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Di jendela Detail Transaksi, tekan{" "}
+                                            <strong>"🖨️ Cetak Struk"</strong>{" "}
+                                            kalau pelanggan minta struk lagi
+                                            atau struk sebelumnya hilang.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">🚫</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            5. Membatalkan Transaksi
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Di jendela Detail Transaksi, tekan{" "}
+                                            <strong className="text-red-400">
+                                                "🚫 Batalkan Transaksi"
+                                            </strong>{" "}
+                                            kalau ada kesalahan input. Akan
+                                            muncul konfirmasi — tekan{" "}
+                                            <strong>"Batalkan"</strong> untuk
+                                            memastikan. Stok barang otomatis
+                                            dikembalikan.
+                                            <br />
+                                            <span className="text-yellow-400">
+                                                ⚠️ Transaksi yang sudah
+                                                dibatalkan tidak bisa diaktifkan
+                                                lagi. Pastikan yakin sebelum
+                                                menekan tombol ini.
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">🌐</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            6. Kalau Internet Mati
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Muncul tulisan{" "}
+                                            <strong className="text-yellow-400">
+                                                "Mode Offline"
+                                            </strong>{" "}
+                                            di atas halaman. Kamu tetap bisa
+                                            melihat riwayat transaksi terakhir
+                                            yang tersimpan, tapi data terbaru
+                                            baru muncul setelah internet kembali
+                                            online.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">🛒</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            7. Kembali ke Halaman Kasir
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Tekan tombol{" "}
+                                            <strong>"🛒 Kasir"</strong> di pojok
+                                            kiri atas untuk kembali melayani
+                                            transaksi baru.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <span className="text-xl">📞</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">
+                                            Masih Bingung?
+                                        </p>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            Hubungi admin/pemilik toko kalau ada
+                                            kendala yang tidak bisa diatasi
+                                            sendiri.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-5 border-t border-gray-700">
+                                <button
+                                    onClick={() => setShowHelpModal(false)}
+                                    className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg transition"
+                                >
+                                    Mengerti
                                 </button>
                             </div>
                         </div>
