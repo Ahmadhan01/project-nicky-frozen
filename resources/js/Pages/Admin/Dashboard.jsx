@@ -1,5 +1,7 @@
 import { Head, router } from "@inertiajs/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import AdminNavbar from "@/Components/AdminNavbar";
+import { AlertTriangle, Clock, Receipt, HelpCircle } from "lucide-react";
 
 export default function Dashboard({
     auth,
@@ -8,14 +10,7 @@ export default function Dashboard({
     expiringProducts,
     recentTransactions,
 }) {
-    const [time, setTime] = useState(new Date());
-    const [showUserMenu, setShowUserMenu] = useState(false);
-
-    useEffect(() => {
-        const timer = setInterval(() => setTime(new Date()), 1000);
-        return () => clearInterval(timer);
-    }, []);
-
+    const [showHelpModal, setShowHelpModal] = useState(false);
     const formatRp = (val) => "Rp " + Number(val).toLocaleString("id-ID");
 
     const formatDate = (val) =>
@@ -26,166 +21,71 @@ export default function Dashboard({
             minute: "2-digit",
         });
 
-    const logout = () => router.post(route("logout"));
-
     return (
         <>
             <Head title="Dashboard Admin" />
-            <div className="h-screen bg-[#0d1117] text-white flex flex-col overflow-hidden">
+            <div className="h-screen bg-theme-bg text-theme-text flex flex-col overflow-hidden">
                 {/* Navbar */}
-                <nav className="bg-[#161b22] px-6 py-3 flex items-center justify-between border-b border-gray-800">
-                    <div className="flex items-center gap-2">
-                        <img
-                            src="/LOGO_NO_TEXT.png"
-                            alt="Nicky Frozen"
-                            className="h-8 w-8 object-contain"
-                        />
-                        <div>
-                            <p className="font-bold text-sm leading-none">
-                                Nicky Frozen
-                            </p>
-                            <p className="text-gray-500 text-xs">
-                                SISTEM KASIR
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <button className="bg-[#1f2937] px-4 py-2 rounded-lg text-sm text-cyan-400 flex items-center gap-2">
-                            🏠 Dashboard
-                        </button>
-                        <button
-                            onClick={() => router.visit(route("admin.history"))}
-                            className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
-                        >
-                            📋 Riwayat
-                        </button>
-                        <button
-                            onClick={() => router.visit(route("admin.products"))}
-                            className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
-                        >
-                            📦 Produk
-                        </button>
-                        <button
-                            onClick={() => router.visit(route("admin.recap"))}
-                            className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
-                        >
-                            📊 Rekap
-                        </button>
-                        <button
-                            onClick={() => router.visit(route("admin.audit"))}
-                            className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
-                        >
-                            🔍 Audit
-                        </button>
-                        {auth.user.role === "owner" && (
-                            <button
-                                onClick={() => router.visit(route("admin.master"))}
-                                className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
-                            >
-                                👑 Master
-                            </button>
-                        )}
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <span className="bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">
-                            ● Online
-                        </span>
-                        <span className="text-sm text-gray-300">
-                            {time.toLocaleTimeString("id-ID", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            })}
-                        </span>
-                        <div className="relative">
-                            <button
-                                onClick={() => setShowUserMenu((prev) => !prev)}
-                                className="flex items-center gap-2 hover:opacity-80 transition"
-                            >
-                                <div className="w-7 h-7 bg-cyan-500 rounded-full flex items-center justify-center text-xs font-bold">
-                                    {auth.user.name.charAt(0).toUpperCase()}
-                                </div>
-                                <span className="text-sm">{auth.user.name} ▾</span>
-                            </button>
-
-                            {showUserMenu && (
-                                <>
-                                    <div
-                                        className="fixed inset-0 z-40"
-                                        onClick={() => setShowUserMenu(false)}
-                                    />
-                                    <div className="absolute right-0 mt-2 w-48 bg-[#161b22] border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
-                                        <div className="px-4 py-3 border-b border-gray-700">
-                                            <p className="text-sm font-semibold text-white">
-                                                {auth.user.name}
-                                            </p>
-                                            <p className="text-xs text-gray-400">
-                                                {auth.user.email}
-                                            </p>
-                                            <span className="text-xs bg-cyan-900/50 text-cyan-400 px-2 py-0.5 rounded-full mt-1 inline-block capitalize">
-                                                {auth.user.role}
-                                            </span>
-                                        </div>
-                                        <button
-                                            onClick={logout}
-                                            className="w-full px-4 py-3 text-left text-sm text-red-400 hover:bg-red-900/30 transition flex items-center gap-2"
-                                        >
-                                            🚪 Logout
-                                        </button>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </nav>
+                <AdminNavbar activeTab="dashboard" />
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6">
-                    <div className="mb-6">
-                        <h1 className="text-xl font-bold">
-                            Selamat datang, {auth.user.name} 👋
-                        </h1>
-                        <p className="text-gray-400 text-sm">
-                            Ringkasan aktivitas hari ini
-                        </p>
+                <div className="flex-1 w-full max-w-[1440px] mx-auto overflow-y-auto p-6">
+                    <div className="mb-6 flex items-center justify-between">
+                        <div>
+                            <h1 className="text-xl font-bold text-theme-text">
+                                Selamat datang, {auth.user.name} 👋
+                            </h1>
+                            <p className="text-theme-muted text-sm">
+                                Ringkasan aktivitas hari ini
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => setShowHelpModal(true)}
+                            className="bg-theme-panel hover:bg-theme-border border border-theme-border text-theme-text font-semibold px-4 py-2 rounded-xl flex items-center gap-2 transition text-sm shadow-sm"
+                        >
+                            <HelpCircle className="w-4 h-4 text-theme-muted" /> Panduan
+                        </button>
                     </div>
 
                     {/* Cards Stat */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        <div className="bg-[#161b22] rounded-xl p-5 border border-gray-800">
-                            <p className="text-gray-400 text-xs mb-1">
+                        <div className="bg-theme-panel rounded-xl p-5 border border-theme-border shadow-sm animate-slide-up" style={{ animationDelay: '50ms' }}>
+                            <p className="text-theme-muted text-xs mb-1">
                                 Omzet Hari Ini
                             </p>
-                            <p className="text-2xl font-bold text-cyan-400">
+                            <p className="text-2xl font-bold text-theme-accent">
                                 {formatRp(stats.today_revenue)}
                             </p>
                         </div>
-                        <div className="bg-[#161b22] rounded-xl p-5 border border-gray-800">
-                            <p className="text-gray-400 text-xs mb-1">
+                        <div className="bg-theme-panel rounded-xl p-5 border border-theme-border shadow-sm animate-slide-up" style={{ animationDelay: '100ms' }}>
+                            <p className="text-theme-muted text-xs mb-1">
                                 Transaksi Hari Ini
                             </p>
-                            <p className="text-2xl font-bold text-white">
+                            <p className="text-2xl font-bold text-theme-text">
                                 {stats.today_count}
                             </p>
                         </div>
                         <div
-                            className="bg-[#161b22] rounded-xl p-5 border border-gray-800 cursor-pointer hover:border-yellow-700 transition"
+                            className="bg-theme-panel rounded-xl p-5 border border-theme-border cursor-pointer hover:border-theme-muted transition shadow-sm animate-slide-up"
+                            style={{ animationDelay: '150ms' }}
                             onClick={() => router.visit(route("admin.products"))}
                         >
-                            <p className="text-gray-400 text-xs mb-1">
-                                ⚠️ Stok Menipis
+                            <p className="text-theme-muted text-xs mb-1 flex items-center gap-1">
+                                <AlertTriangle className="w-3.5 h-3.5 text-theme-muted" /> Stok Menipis
                             </p>
-                            <p className="text-2xl font-bold text-yellow-400">
+                            <p className="text-2xl font-bold text-theme-text">
                                 {stats.low_stock_count}
                             </p>
                         </div>
                         <div
-                            className="bg-[#161b22] rounded-xl p-5 border border-gray-800 cursor-pointer hover:border-orange-700 transition"
+                            className="bg-theme-panel rounded-xl p-5 border border-theme-border cursor-pointer hover:border-theme-muted transition shadow-sm animate-slide-up"
+                            style={{ animationDelay: '200ms' }}
                             onClick={() => router.visit(route("admin.products"))}
                         >
-                            <p className="text-gray-400 text-xs mb-1">
-                                ⏰ Mendekati Kadaluarsa
+                            <p className="text-theme-muted text-xs mb-1 flex items-center gap-1">
+                                <Clock className="w-3.5 h-3.5 text-theme-muted" /> Mendekati Kadaluarsa
                             </p>
-                            <p className="text-2xl font-bold text-orange-400">
+                            <p className="text-2xl font-bold text-theme-text">
                                 {stats.expiring_count}
                             </p>
                         </div>
@@ -193,13 +93,13 @@ export default function Dashboard({
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         {/* Stok Menipis / Kadaluarsa */}
-                        <div className="bg-[#161b22] rounded-xl border border-gray-800 p-5">
-                            <h2 className="font-semibold mb-3">
-                                ⚠️ Perlu Perhatian
+                        <div className="bg-theme-panel rounded-xl border border-theme-border p-5 shadow-sm animate-slide-up" style={{ animationDelay: '250ms' }}>
+                            <h2 className="font-semibold mb-3 flex items-center gap-2 text-theme-text">
+                                <AlertTriangle className="w-4 h-4 text-theme-muted" /> Perlu Perhatian
                             </h2>
                             {lowStockProducts.length === 0 &&
                             expiringProducts.length === 0 ? (
-                                <p className="text-gray-500 text-sm py-4 text-center">
+                                <p className="text-theme-muted text-sm py-4 text-center">
                                     Semua aman, tidak ada yang perlu ditindak
                                 </p>
                             ) : (
@@ -207,12 +107,12 @@ export default function Dashboard({
                                     {lowStockProducts.map((p) => (
                                         <div
                                             key={`low-${p.id}`}
-                                            className="flex items-center justify-between bg-[#0d1117] rounded-lg px-3 py-2"
+                                            className="flex items-center justify-between bg-theme-bg rounded-lg px-3 py-2 border border-theme-border"
                                         >
-                                            <span className="text-sm text-gray-300">
+                                            <span className="text-sm text-theme-text font-medium">
                                                 {p.name}
                                             </span>
-                                            <span className="text-xs bg-yellow-900/50 text-yellow-400 px-2 py-0.5 rounded-full">
+                                            <span className="text-xs bg-yellow-50 text-yellow-700 border border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-500 dark:border-yellow-800/20 px-2 py-0.5 rounded-full font-semibold">
                                                 Stok: {p.total_stock}
                                             </span>
                                         </div>
@@ -220,12 +120,12 @@ export default function Dashboard({
                                     {expiringProducts.map((p) => (
                                         <div
                                             key={`exp-${p.id}`}
-                                            className="flex items-center justify-between bg-[#0d1117] rounded-lg px-3 py-2"
+                                            className="flex items-center justify-between bg-theme-bg rounded-lg px-3 py-2 border border-theme-border"
                                         >
-                                            <span className="text-sm text-gray-300">
+                                            <span className="text-sm text-theme-text font-medium">
                                                 {p.name}
                                             </span>
-                                            <span className="text-xs bg-orange-900/50 text-orange-400 px-2 py-0.5 rounded-full">
+                                            <span className="text-xs bg-orange-900/20 text-orange-500 border border-orange-800/20 px-2 py-0.5 rounded-full font-medium">
                                                 Exp:{" "}
                                                 {new Date(
                                                     p.expiry_date,
@@ -241,12 +141,12 @@ export default function Dashboard({
                         </div>
 
                         {/* Transaksi Terbaru */}
-                        <div className="bg-[#161b22] rounded-xl border border-gray-800 p-5">
-                            <h2 className="font-semibold mb-3">
-                                🧾 Transaksi Terbaru
+                        <div className="bg-theme-panel rounded-xl border border-theme-border p-5 shadow-sm animate-slide-up" style={{ animationDelay: '300ms' }}>
+                            <h2 className="font-semibold mb-3 flex items-center gap-2 text-theme-text">
+                                <Receipt className="w-4 h-4 text-theme-muted" /> Transaksi Terbaru
                             </h2>
                             {recentTransactions.length === 0 ? (
-                                <p className="text-gray-500 text-sm py-4 text-center">
+                                <p className="text-theme-muted text-sm py-4 text-center">
                                     Belum ada transaksi
                                 </p>
                             ) : (
@@ -254,18 +154,18 @@ export default function Dashboard({
                                     {recentTransactions.map((t) => (
                                         <div
                                             key={t.id}
-                                            className="flex items-center justify-between bg-[#0d1117] rounded-lg px-3 py-2"
+                                            className="flex items-center justify-between bg-theme-bg rounded-lg px-3 py-2 border border-theme-border"
                                         >
                                             <div>
-                                                <p className="text-sm text-gray-300">
+                                                <p className="text-sm text-theme-text font-medium">
                                                     {t.invoice_number ?? `#${t.id}`}
                                                 </p>
-                                                <p className="text-xs text-gray-500">
+                                                <p className="text-xs text-theme-muted mt-0.5">
                                                     {t.kasirSession?.kios?.name} ·{" "}
                                                     {formatDate(t.created_at)}
                                                 </p>
                                             </div>
-                                            <span className="text-cyan-400 font-semibold text-sm">
+                                            <span className="text-theme-accent font-bold text-sm">
                                                 {formatRp(t.total_amount)}
                                             </span>
                                         </div>
@@ -276,6 +176,77 @@ export default function Dashboard({
                     </div>
                 </div>
             </div>
+
+            {showHelpModal && (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fade-in">
+                    <div className="bg-theme-panel rounded-2xl w-full max-w-lg border border-theme-border max-h-[85vh] flex flex-col text-theme-text shadow-2xl animate-modal-pop">
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-5 border-b border-theme-border shrink-0">
+                            <div className="flex items-center gap-3">
+                                <HelpCircle className="w-6 h-6 text-theme-accent" />
+                                <h2 className="text-lg font-bold text-theme-text">
+                                    Panduan Dasbor Admin
+                                </h2>
+                            </div>
+                            <button
+                                onClick={() => setShowHelpModal(false)}
+                                className="text-theme-muted hover:text-theme-text text-xl"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Isi Panduan - Scrollable */}
+                        <div className="overflow-y-auto p-5 space-y-4">
+                            <div className="flex gap-3">
+                                <Clock className="w-5 h-5 text-theme-accent shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-semibold text-sm text-theme-text">
+                                        1. Ringkasan Aktivitas
+                                    </p>
+                                    <p className="text-theme-muted text-sm mt-1">
+                                        Melihat <strong>Omzet Hari Ini</strong>, <strong>Transaksi Hari Ini</strong>, <strong>Stok Menipis</strong>, dan produk <strong>Mendekati Kadaluarsa</strong> secara sekilas di bagian atas dasbor.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <AlertTriangle className="w-5 h-5 text-theme-accent shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-semibold text-sm text-theme-text">
+                                        2. Perlu Perhatian (Alerts)
+                                    </p>
+                                    <p className="text-theme-muted text-sm mt-1">
+                                        Daftar produk yang stoknya di bawah ambang batas minimum atau hampir kadaluarsa akan muncul di panel sebelah kiri untuk ditindaklanjuti.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <Receipt className="w-5 h-5 text-theme-accent shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-semibold text-sm text-theme-text">
+                                        3. Transaksi Terbaru
+                                    </p>
+                                    <p className="text-theme-muted text-sm mt-1">
+                                        Menampilkan daftar transaksi paling baru yang dilakukan oleh kasir di berbagai kios.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-5 border-t border-theme-border shrink-0">
+                            <button
+                                onClick={() => setShowHelpModal(false)}
+                                className="w-full bg-theme-accent hover:bg-theme-accent-hover text-white font-bold py-3 rounded-lg transition"
+                            >
+                                Mengerti
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

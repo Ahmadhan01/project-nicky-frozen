@@ -12,17 +12,17 @@ class UserSeeder extends Seeder
     {
         User::firstOrCreate(
             ['email' => 'admin@nickyfrozen.com'],
-            ['name' => 'Admin Nicky', 'password' => Hash::make('password123'), 'role' => 'admin']
+            ['name' => 'Admin Nicky', 'username' => 'admin', 'password' => Hash::make('password123'), 'role' => 'admin']
         );
 
         User::firstOrCreate(
             ['email' => 'kasir@nickyfrozen.com'],
-            ['name' => 'Kasir 1', 'password' => Hash::make('password123'), 'role' => 'kasir']
+            ['name' => 'Kasir 1', 'username' => 'kasir', 'password' => Hash::make('password123'), 'role' => 'kasir']
         );
 
         User::firstOrCreate(
             ['email' => 'owner@nickyfrozen.com'],
-            ['name' => 'Owner Nicky', 'password' => Hash::make('password123'), 'role' => 'owner']
+            ['name' => 'Owner Nicky', 'username' => 'owner', 'password' => Hash::make('password123'), 'role' => 'owner']
         );
     }
 }

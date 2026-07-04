@@ -27,7 +27,7 @@ class UserController extends Controller
                 return [
                     'id'             => $user->id,
                     'name'           => $user->name,
-                    'username'       => $user->username,
+                    'username'       => $user->username ?: explode('@', $user->email)[0],
                     'email'          => $user->email,
                     'role'           => $user->role,
                     'avatar_color'   => $user->avatar_color,

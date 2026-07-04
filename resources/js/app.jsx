@@ -1,6 +1,15 @@
 import '../css/app.css';
 import './bootstrap';
 
+// Initialize Theme
+if (localStorage.getItem('theme') === 'light') {
+    document.documentElement.classList.add('light');
+    document.documentElement.classList.remove('dark');
+} else {
+    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('light');
+}
+
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';

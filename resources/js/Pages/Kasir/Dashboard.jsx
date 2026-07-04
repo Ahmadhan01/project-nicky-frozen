@@ -1,5 +1,28 @@
 import { Head, router, usePage } from "@inertiajs/react";
 import { useState, useEffect, useCallback } from "react";
+import KasirNavbar from "@/Components/KasirNavbar";
+import { 
+    AlertTriangle, 
+    WifiOff, 
+    RefreshCw, 
+    CheckCircle2, 
+    Settings, 
+    Store, 
+    Sun, 
+    Moon, 
+    FileText, 
+    Package, 
+    Printer,
+    HelpCircle,
+    Lock,
+    ShoppingCart,
+    Plus,
+    History,
+    LogOut,
+    Phone,
+    Wifi,
+    Search
+} from "lucide-react";
 
 export default function Dashboard({
     auth,
@@ -238,14 +261,7 @@ export default function Dashboard({
         );
     };
 
-    const [time, setTime] = useState(new Date());
 
-    useEffect(() => {
-        const timer = setInterval(() => setTime(new Date()), 1000);
-        return () => clearInterval(timer);
-    }, []);
-
-    const [showUserMenu, setShowUserMenu] = useState(false);
 
     // Proses transaksi
     const processTransaction = () => {
@@ -423,42 +439,42 @@ export default function Dashboard({
     const AlertModal = () => {
         if (!alertModal) return null;
         return (
-            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[999] p-4">
-                <div className="bg-[#1c2333] rounded-2xl w-full max-w-sm border border-gray-700 shadow-2xl overflow-hidden">
+            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[999] p-4 animate-fade-in">
+                <div className="bg-theme-panel rounded-2xl w-full max-w-sm border border-theme-border shadow-2xl overflow-hidden flex flex-col items-center animate-modal-pop">
                     <div className="p-6 flex flex-col items-center text-center">
                         <div
-                            className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 text-2xl ${
+                            className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 ${
                                 alertModal.type === "confirm"
-                                    ? "bg-red-500/20"
-                                    : "bg-yellow-500/20"
+                                    ? "bg-red-500/20 text-red-500"
+                                    : "bg-yellow-500/20 text-yellow-500"
                             }`}
                         >
-                            {alertModal.type === "confirm" ? "⚠️" : "ℹ️"}
+                            <AlertTriangle className="w-8 h-8" />
                         </div>
-                        <p className="text-white font-semibold text-base leading-snug">
+                        <p className="text-theme-text font-semibold text-base leading-snug">
                             {alertModal.message}
                         </p>
                     </div>
-                    <div
-                        className={`flex border-t border-gray-700 ${alertModal.type === "confirm" ? "" : ""}`}
-                    >
+                    <div className="w-full flex border-t border-theme-border">
                         {alertModal.type === "confirm" && (
                             <button
                                 onClick={() => setAlertModal(null)}
-                                className="flex-1 py-3 text-sm font-semibold text-gray-300 hover:bg-gray-700/50 transition border-r border-gray-700"
+                                className="flex-1 py-3 text-sm font-semibold text-theme-muted hover:bg-theme-bg/50 transition border-r border-theme-border"
                             >
                                 Batal
                             </button>
                         )}
                         <button
                             onClick={() => {
-                                alertModal.onConfirm?.();
+                                if (alertModal.onConfirm) {
+                                    alertModal.onConfirm();
+                                }
                                 setAlertModal(null);
                             }}
                             className={`flex-1 py-3 text-sm font-semibold transition ${
                                 alertModal.type === "confirm"
-                                    ? "text-red-400 hover:bg-red-500/20"
-                                    : "text-cyan-400 hover:bg-cyan-500/20"
+                                    ? "text-red-500 hover:bg-red-500/10"
+                                    : "text-theme-accent hover:bg-theme-accent/10"
                             }`}
                         >
                             {alertModal.type === "confirm"
@@ -472,18 +488,9 @@ export default function Dashboard({
     };
 
     const FlashToast = ({ message }) => {
-        const [visible, setVisible] = useState(true);
-
-        useEffect(() => {
-            const timer = setTimeout(() => setVisible(false), 3000);
-            return () => clearTimeout(timer);
-        }, []);
-
-        if (!visible) return null;
-
         return (
-            <div className="fixed bottom-6 right-6 bg-green-600 text-white px-5 py-3 rounded-xl shadow-lg z-50 flex items-center gap-2 animate-fade-in">
-                ✅ {message}
+            <div className="fixed bottom-6 right-6 bg-green-600 text-white px-5 py-3 rounded-xl shadow-lg z-50 flex items-center gap-2 animate-toast-in">
+                <CheckCircle2 className="w-5 h-5 text-white" /> {message}
             </div>
         );
     };
@@ -494,7 +501,7 @@ export default function Dashboard({
             {/* Banner Offline */}
             {!isOnline && (
                 <div className="bg-yellow-900/80 border-b border-yellow-700 px-6 py-3 flex items-center gap-3 text-yellow-300 text-sm">
-                    <span>⚠️</span>
+                    <WifiOff className="w-4 h-4 text-yellow-400 shrink-0" />
                     <span>
                         <strong>Mode Offline Aktif.</strong>{" "}
                         {offlineQueue.length} transaksi tersimpan lokal — data
@@ -506,7 +513,7 @@ export default function Dashboard({
             {/* Banner Stok Menipis */}
             {lowStockProducts.length > 0 && (
                 <div className="bg-orange-900/80 border-b border-orange-700 px-6 py-2 flex items-center gap-3 text-orange-300 text-sm">
-                    <span>⚠️</span>
+                    <AlertTriangle className="w-4 h-4 text-orange-400 shrink-0" />
                     <span>
                         <strong>Stok Menipis!</strong>{" "}
                         {lowStockProducts
@@ -519,7 +526,7 @@ export default function Dashboard({
             {/* Banner Syncing */}
             {isSyncing && (
                 <div className="bg-blue-900/80 border-b border-blue-700 px-6 py-3 flex items-center gap-3 text-blue-300 text-sm">
-                    <span>🔄</span>
+                    <RefreshCw className="w-4 h-4 text-blue-400 animate-spin shrink-0" />
                     <span>
                         <strong>
                             Menyinkronkan {offlineQueue.length} transaksi...
@@ -531,155 +538,53 @@ export default function Dashboard({
 
             {/* Toast Offline */}
             {showOfflineToast && (
-                <div className="fixed bottom-6 right-6 bg-[#1f2937] border border-yellow-700 text-white px-5 py-4 rounded-xl shadow-lg z-50 flex items-start gap-3 max-w-sm">
-                    <span className="text-yellow-400 text-xl">⚠️</span>
+                <div className="fixed bottom-6 right-6 bg-theme-panel border border-yellow-700/50 text-theme-text px-5 py-4 rounded-xl shadow-lg z-50 flex items-start gap-3 max-w-sm">
+                    <WifiOff className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
                     <div>
                         <p className="font-semibold text-sm">Mode Offline</p>
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="text-xs text-theme-muted mt-0.5">
                             Transaksi akan disimpan lokal dan disinkronkan saat
                             online.
                         </p>
                     </div>
                     <button
                         onClick={() => setShowOfflineToast(false)}
-                        className="text-gray-500 hover:text-white ml-2"
+                        className="text-theme-muted hover:text-theme-text ml-2"
                     >
                         ✕
                     </button>
                 </div>
             )}
             {flash?.success && <FlashToast message={flash.success} />}
-            <div className="h-screen bg-[#0d1117] text-white flex flex-col overflow-hidden">
+            <div className="h-screen bg-theme-bg text-theme-text flex flex-col overflow-hidden">
                 {/* Navbar */}
-                <nav className="bg-[#161b22] px-6 py-3 flex items-center justify-between border-b border-gray-800">
-                    <div className="flex items-center gap-2">
-                        <img
-                            src="/LOGO_NO_TEXT.png"
-                            alt="Nicky Frozen"
-                            className="h-8 w-8 object-contain"
-                        />
-                        <div>
-                            <p className="font-bold text-sm leading-none">
-                                Nicky Frozen
-                            </p>
-                            <p className="text-gray-500 text-xs">
-                                SISTEM KASIR
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <button className="bg-[#1f2937] px-4 py-2 rounded-lg text-sm flex items-center gap-2 text-cyan-400">
-                            🛒 Kasir
-                        </button>
-                        <button
-                            onClick={() => {
-                                if (!isOnline) {
-                                    // Simpan flag supaya History.jsx tahu kita dari offline
-                                    localStorage.setItem(
-                                        "nicky_offline_nav",
-                                        "true",
-                                    );
-                                }
-                                router.visit(route("kasir.history"));
-                            }}
-                            className="px-4 py-2 rounded-lg text-sm flex items-center gap-2 text-gray-400 hover:text-white"
-                        >
-                            📋 Riwayat
-                        </button>
-                        <button
-                            onClick={() => setShowHelpModal(true)}
-                            className="px-4 py-2 rounded-lg text-sm flex items-center gap-2 text-gray-400 hover:text-white"
-                        >
-                            ❓ Bantuan
-                        </button>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <span
-                            className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
-                                isOnline
-                                    ? "bg-green-900 text-green-400"
-                                    : "bg-red-900 text-red-400"
-                            }`}
-                        >
-                            ● {isOnline ? "Online" : "Offline"}
-                        </span>
-                        <span className="text-sm text-gray-300">
-                            {time.toLocaleTimeString("id-ID", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            })}
-                        </span>
-                        <div className="relative">
-                            <button
-                                onClick={() => setShowUserMenu((prev) => !prev)}
-                                className="flex items-center gap-2 hover:opacity-80 transition"
-                            >
-                                <div className="w-7 h-7 bg-cyan-500 rounded-full flex items-center justify-center text-xs font-bold">
-                                    {auth.user.name.charAt(0).toUpperCase()}
-                                </div>
-                                <span className="text-sm">
-                                    {auth.user.name} ▾
-                                </span>
-                            </button>
-
-                            {showUserMenu && (
-                                <>
-                                    {/* Backdrop */}
-                                    <div
-                                        className="fixed inset-0 z-40"
-                                        onClick={() => setShowUserMenu(false)}
-                                    />
-
-                                    {/* Dropdown */}
-                                    <div className="absolute right-0 mt-2 w-48 bg-[#161b22] border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
-                                        <div className="px-4 py-3 border-b border-gray-700">
-                                            <p className="text-sm font-semibold text-white">
-                                                {auth.user.name}
-                                            </p>
-                                            <p className="text-xs text-gray-400">
-                                                {auth.user.email}
-                                            </p>
-                                            <span className="text-xs bg-cyan-900/50 text-cyan-400 px-2 py-0.5 rounded-full mt-1 inline-block capitalize">
-                                                {auth.user.role}
-                                            </span>
-                                        </div>
-                                        <button
-                                            onClick={logout}
-                                            className="w-full px-4 py-3 text-left text-sm text-red-400 hover:bg-red-900/30 transition flex items-center gap-2"
-                                        >
-                                            🚪 Logout
-                                        </button>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </nav>
+                <KasirNavbar activeTab="kasir" isOnline={isOnline} onHelpClick={() => setShowHelpModal(true)} />
 
                 {/* Info Sesi */}
                 {activeSession && (
-                    <div className="bg-[#161b22] px-6 py-2 flex items-center gap-6 text-xs text-gray-400 border-b border-gray-800">
-                        <span>
+                    <div className="bg-theme-panel border-b border-theme-border shrink-0">
+                        <div className="max-w-[1440px] mx-auto px-6 py-2 flex items-center gap-6 text-xs text-theme-muted">
+                            <span>
                             🏪 Kios:{" "}
-                            <strong className="text-white">
+                            <strong className="text-theme-text">
                                 {activeSession.kios?.name}
                             </strong>
                         </span>
                         <span>
                             🕐 Shift:{" "}
-                            <strong className="text-white">
+                            <strong className="text-theme-text">
                                 {activeSession.shift?.name}
                             </strong>
                         </span>
                         <span>
                             👤 User:{" "}
-                            <strong className="text-white">
+                            <strong className="text-theme-text">
                                 {auth.user.name}
                             </strong>
                         </span>
                         <span>
                             📅{" "}
-                            <strong className="text-white">
+                            <strong className="text-theme-text">
                                 {new Date().toLocaleDateString("id-ID", {
                                     weekday: "long",
                                     day: "numeric",
@@ -688,41 +593,50 @@ export default function Dashboard({
                                 })}
                             </strong>
                         </span>
-                        <button
-                            onClick={() => setShowSessionModal(true)}
-                            className="ml-auto text-cyan-400 hover:underline"
-                        >
-                            Ganti Sesi
-                        </button>
+                        <div className="ml-auto flex items-center gap-4">
+                            <button
+                                onClick={() => setShowHelpModal(true)}
+                                className="bg-theme-panel hover:bg-theme-border border border-theme-border text-theme-text font-semibold px-3 py-1 rounded-lg flex items-center gap-1.5 transition text-xs shadow-sm"
+                            >
+                                <HelpCircle className="w-3.5 h-3.5 text-theme-muted" /> Panduan
+                            </button>
+                            <button
+                                onClick={() => setShowSessionModal(true)}
+                                className="text-theme-accent hover:underline text-xs"
+                            >
+                                Ganti Sesi
+                            </button>
+                        </div>
+                        </div>
                     </div>
                 )}
 
                 {/* Main Content */}
-                <div className="flex flex-1 overflow-hidden">
+                <div className="flex-1 w-full max-w-[1440px] mx-auto flex overflow-hidden">
                     {/* Kiri: Produk */}
                     <div className="flex-1 flex flex-col p-4 overflow-hidden">
                         {/* Search */}
-                        <div className="flex items-center bg-[#161b22] rounded-lg px-4 py-2 mb-4 gap-2 border border-gray-800">
-                            <span className="text-gray-500">🔍</span>
+                        <div className="flex items-center bg-theme-panel rounded-lg px-4 py-2 mb-4 gap-2 border border-theme-border">
+                            <span className="text-theme-muted">🔍</span>
                             <input
                                 type="text"
                                 placeholder="Cari produk..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="bg-transparent outline-none text-sm text-white placeholder-gray-500 w-full"
+                                className="bg-transparent outline-none text-sm text-theme-text placeholder-theme-muted w-full"
                             />
                         </div>
 
                         {/* Filter Kategori */}
-                        <div className="flex gap-2 mb-4 flex-wrap">
+                        <div className="flex gap-2 mb-2.5 flex-wrap">
                             {categories.map((cat) => (
                                 <button
                                     key={cat}
                                     onClick={() => setActiveCategory(cat)}
                                     className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${
                                         activeCategory === cat
-                                            ? "bg-cyan-500 text-white"
-                                            : "bg-[#161b22] text-gray-400 hover:text-white border border-gray-700"
+                                            ? "bg-theme-accent text-white"
+                                            : "bg-theme-panel text-theme-muted hover:text-theme-text border border-theme-border"
                                     }`}
                                 >
                                     {cat}
@@ -731,9 +645,9 @@ export default function Dashboard({
                         </div>
 
                         {/* Grid Produk */}
-                        <div className="flex-1 overflow-y-auto pr-1">
+                        <div className="flex-1 overflow-y-auto px-2 pt-1.5 pb-2">
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                                {filteredProducts.map((product) => {
+                                {filteredProducts.map((product, index) => {
                                     const inCart = cart.find(
                                         (i) => i.id === product.id,
                                     );
@@ -746,32 +660,33 @@ export default function Dashboard({
                                             onClick={() =>
                                                 !habis && addToCart(product)
                                             }
-                                            className={`bg-[#161b22] rounded-xl p-3 border relative transition cursor-pointer
-                ${habis ? "opacity-50 cursor-not-allowed border-gray-800" : "border-gray-800 hover:border-cyan-500"}`}
+                                            className={`animate-slide-up hover-scale-card bg-theme-panel rounded-xl p-3 border relative cursor-pointer active:scale-[0.98]
+                                            ${habis ? "opacity-50 cursor-not-allowed border-theme-border" : "border-theme-border"}`}
+                                            style={{ animationDelay: `${(index % 15) * 30}ms` }}
                                         >
                                             {inCart && (
-                                                <span className="absolute top-2 right-2 bg-cyan-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                                                <span className="absolute top-2 right-2 bg-theme-accent text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
                                                     {inCart.qty}
                                                 </span>
                                             )}
-                                            <div className="bg-[#0d1117] rounded-lg p-4 flex items-center justify-center mb-2">
+                                            <div className="bg-theme-bg rounded-lg p-4 flex items-center justify-center mb-2">
                                                 <span className="text-2xl">
                                                     🍱
                                                 </span>
                                             </div>
-                                            <p className="text-sm font-medium leading-tight">
+                                            <p className="text-sm font-medium leading-tight text-theme-text">
                                                 {product.name}
                                             </p>
-                                            <p className="text-cyan-400 font-bold text-sm mt-1">
+                                            <p className="text-theme-accent font-bold text-sm mt-1">
                                                 {formatRp(product.price)}
                                             </p>
                                             <p
                                                 className={`text-xs mt-0.5 ${
                                                     habis
-                                                        ? "text-red-400"
+                                                        ? "text-red-500 font-medium"
                                                         : remainingStock <= 5
-                                                          ? "text-orange-400"
-                                                          : "text-gray-500"
+                                                          ? "text-amber-500 font-medium"
+                                                          : "text-theme-muted"
                                                 }`}
                                             >
                                                 {habis
@@ -788,14 +703,14 @@ export default function Dashboard({
                     </div>
 
                     {/* Kanan: Keranjang */}
-                    <div className="w-80 bg-[#161b22] border-l border-gray-800 flex flex-col">
-                        <div className="p-4 border-b border-gray-800 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
+                    <div className="w-80 bg-theme-panel border-l border-theme-border flex flex-col">
+                        <div className="p-4 border-b border-theme-border flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-theme-text">
                                 <span className="font-bold">
                                     Keranjang Belanja
                                 </span>
                                 {cart.length > 0 && (
-                                    <span className="bg-cyan-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                                    <span className="bg-theme-accent text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                                         {cart.length}
                                     </span>
                                 )}
@@ -803,7 +718,7 @@ export default function Dashboard({
                             {cart.length > 0 && (
                                 <button
                                     onClick={() => setCart([])}
-                                    className="text-red-400 text-xs hover:underline"
+                                    className="text-red-500 text-xs hover:underline"
                                 >
                                     Hapus Semua
                                 </button>
@@ -813,7 +728,7 @@ export default function Dashboard({
                         {/* Items */}
                         <div className="flex-1 overflow-auto p-4 space-y-3">
                             {cart.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-full text-gray-600">
+                                <div className="flex flex-col items-center justify-center h-full text-theme-muted">
                                     <span className="text-4xl mb-2">🛒</span>
                                     <p className="text-sm">Belum ada item</p>
                                 </div>
@@ -821,20 +736,20 @@ export default function Dashboard({
                                 cart.map((item) => (
                                     <div
                                         key={item.id}
-                                        className="flex flex-col gap-2 pb-3 border-b border-gray-800/60 last:border-0 last:pb-0"
+                                        className="animate-slide-up flex flex-col gap-2 pb-3 border-b border-theme-border/60 last:border-0 last:pb-0"
                                     >
                                         {/* Baris atas: ikon, nama, harga satuan, hapus */}
                                         <div className="flex items-center gap-2">
-                                            <div className="bg-[#0d1117] p-2 rounded-lg shrink-0">
+                                            <div className="bg-theme-bg p-2 rounded-lg shrink-0">
                                                 <span className="text-lg">
                                                     🍱
                                                 </span>
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-xs font-medium truncate">
+                                                <p className="text-xs font-semibold truncate text-theme-text">
                                                     {item.name}
                                                 </p>
-                                                <p className="text-xs text-gray-400">
+                                                <p className="text-xs text-theme-muted">
                                                     {formatRp(item.price)}
                                                 </p>
                                             </div>
@@ -842,7 +757,7 @@ export default function Dashboard({
                                                 onClick={() =>
                                                     removeItem(item.id)
                                                 }
-                                                className="text-red-400 hover:text-red-300 text-sm shrink-0"
+                                                className="text-red-500 hover:text-red-400 text-sm shrink-0"
                                             >
                                                 ✕
                                             </button>
@@ -855,7 +770,7 @@ export default function Dashboard({
                                                     onClick={() =>
                                                         updateQty(item.id, -1)
                                                     }
-                                                    className="w-8 h-8 bg-[#0d1117] rounded text-base hover:bg-gray-700 flex items-center justify-center"
+                                                    className="w-8 h-8 bg-theme-bg rounded text-base hover:bg-theme-border flex items-center justify-center text-theme-text"
                                                 >
                                                     -
                                                 </button>
@@ -906,18 +821,18 @@ export default function Dashboard({
                                                     onFocus={(e) =>
                                                         e.target.select()
                                                     }
-                                                    className="w-12 h-8 bg-[#0d1117] border border-gray-600 rounded text-sm text-center text-white outline-none focus:border-cyan-500"
+                                                    className="w-12 h-8 bg-theme-bg border border-theme-border rounded text-sm text-center text-theme-text outline-none focus:border-theme-accent"
                                                 />
                                                 <button
                                                     onClick={() =>
                                                         updateQty(item.id, 1)
                                                     }
-                                                    className="w-8 h-8 bg-[#0d1117] rounded text-base hover:bg-gray-700 flex items-center justify-center"
+                                                    className="w-8 h-8 bg-theme-bg rounded text-base hover:bg-theme-border flex items-center justify-center text-theme-text"
                                                 >
                                                     +
                                                 </button>
                                             </div>
-                                            <span className="text-xs text-white min-w-fit">
+                                            <span className="text-xs text-theme-text min-w-fit">
                                                 {formatRp(
                                                     item.price * item.qty,
                                                 )}
@@ -929,12 +844,12 @@ export default function Dashboard({
                         </div>
 
                         {/* Footer Keranjang */}
-                        <div className="p-4 border-t border-gray-800 space-y-3">
-                            <div className="flex justify-between text-sm text-gray-400">
+                        <div className="p-4 border-t border-theme-border space-y-3">
+                            <div className="flex justify-between text-sm text-theme-muted">
                                 <span>Subtotal ({cart.length} item)</span>
                                 <span>{formatRp(subtotal)}</span>
                             </div>
-                            <div className="flex justify-between font-bold text-lg">
+                            <div className="flex justify-between font-bold text-lg text-theme-text">
                                 <span>Total</span>
                                 <span>{formatRp(subtotal)}</span>
                             </div>
@@ -943,20 +858,20 @@ export default function Dashboard({
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => setPaymentMethod("cash")}
-                                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
+                                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 active:scale-95 ${
                                         paymentMethod === "cash"
-                                            ? "bg-cyan-500 text-white"
-                                            : "bg-[#0d1117] text-gray-400 border border-gray-700"
+                                            ? "bg-theme-accent text-white shadow-sm"
+                                            : "bg-theme-bg text-theme-muted border border-theme-border hover:text-theme-text"
                                     }`}
                                 >
                                     💵 Cash
                                 </button>
                                 <button
                                     onClick={() => setPaymentMethod("transfer")}
-                                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
+                                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 active:scale-95 ${
                                         paymentMethod === "transfer"
-                                            ? "bg-cyan-500 text-white"
-                                            : "bg-[#0d1117] text-gray-400 border border-gray-700"
+                                            ? "bg-theme-accent text-white shadow-sm"
+                                            : "bg-theme-bg text-theme-muted border border-theme-border hover:text-theme-text"
                                     }`}
                                 >
                                     💳 Non-Tunai
@@ -985,15 +900,15 @@ export default function Dashboard({
                                             );
                                         }}
                                         inputMode="numeric"
-                                        className="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-500 text-white"
+                                        className="w-full bg-theme-input-bg border border-theme-input-border rounded-lg px-3 py-2 text-sm outline-none focus:border-theme-accent text-theme-text"
                                     />
-                                    <div className="flex justify-between text-sm text-gray-400">
+                                    <div className="flex justify-between text-sm text-theme-muted">
                                         <span>Kembalian</span>
                                         <span
                                             className={
                                                 change < 0
-                                                    ? "text-red-400"
-                                                    : "text-white"
+                                                    ? "text-red-500 font-semibold"
+                                                    : "text-theme-text font-semibold"
                                             }
                                         >
                                             {formatRp(Math.max(0, change))}
@@ -1006,29 +921,27 @@ export default function Dashboard({
                             <button
                                 onClick={processTransaction}
                                 disabled={cart.length === 0}
-                                className="w-full bg-green-600 hover:bg-green-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition flex items-center justify-center gap-2"
+                                className="w-full bg-green-600 hover:bg-green-500 active:scale-[0.98] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none disabled:active:scale-100 text-white font-bold py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow"
                             >
                                 📷 Proses Transaksi
                             </button>
                         </div>
                     </div>
                 </div>
-
-                {/* Modal Bantuan / Panduan Penggunaan */}
                 {showHelpModal && (
-                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                        <div className="bg-[#161b22] rounded-2xl w-full max-w-lg border border-gray-700 max-h-[85vh] flex flex-col">
+                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fade-in">
+                        <div className="bg-theme-panel rounded-2xl w-full max-w-lg border border-theme-border max-h-[85vh] flex flex-col text-theme-text shadow-2xl animate-modal-pop">
                             {/* Header */}
-                            <div className="flex items-center justify-between p-5 border-b border-gray-700">
+                            <div className="flex items-center justify-between p-5 border-b border-theme-border shrink-0">
                                 <div className="flex items-center gap-3">
-                                    <span className="text-2xl">❓</span>
-                                    <h2 className="text-lg font-bold">
+                                    <HelpCircle className="w-6 h-6 text-theme-accent" />
+                                    <h2 className="text-lg font-bold text-theme-text">
                                         Panduan Kasir
                                     </h2>
                                 </div>
                                 <button
                                     onClick={() => setShowHelpModal(false)}
-                                    className="text-gray-400 hover:text-white text-xl"
+                                    className="text-theme-muted hover:text-theme-text text-xl"
                                 >
                                     ✕
                                 </button>
@@ -1037,7 +950,7 @@ export default function Dashboard({
                             {/* Isi Panduan - Scrollable */}
                             <div className="overflow-y-auto p-5 space-y-4">
                                 <div className="flex gap-3">
-                                    <span className="text-xl">🔐</span>
+                                    <Lock className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="font-semibold text-sm">
                                             1. Login
@@ -1052,7 +965,7 @@ export default function Dashboard({
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">⚙️</span>
+                                    <Settings className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="font-semibold text-sm">
                                             2. Setup Sesi Kasir
@@ -1068,7 +981,7 @@ export default function Dashboard({
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">🔍</span>
+                                    <Search className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="font-semibold text-sm">
                                             3. Cari & Pilih Produk
@@ -1084,7 +997,7 @@ export default function Dashboard({
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">🛒</span>
+                                    <ShoppingCart className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="font-semibold text-sm">
                                             4. Tambah Barang ke Keranjang
@@ -1098,7 +1011,7 @@ export default function Dashboard({
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">🔢</span>
+                                    <Plus className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="font-semibold text-sm">
                                             5. Ubah Jumlah atau Hapus Barang
@@ -1115,7 +1028,7 @@ export default function Dashboard({
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">💵</span>
+                                    <CheckCircle2 className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="font-semibold text-sm">
                                             6. Pilih Cara Bayar
@@ -1133,7 +1046,7 @@ export default function Dashboard({
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">✅</span>
+                                    <CheckCircle2 className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="font-semibold text-sm">
                                             7. Proses Transaksi
@@ -1149,14 +1062,14 @@ export default function Dashboard({
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">🖨️</span>
+                                    <Printer className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="font-semibold text-sm">
                                             8. Cetak atau Tutup Struk
                                         </p>
                                         <p className="text-gray-400 text-sm mt-1">
                                             Di layar struk, tekan{" "}
-                                            <strong>"🖨️ Cetak"</strong> untuk
+                                            <strong>"Cetak"</strong> untuk
                                             mencetak/simpan struk, atau{" "}
                                             <strong>"Tutup"</strong> kalau
                                             pelanggan tidak butuh struk fisik.
@@ -1167,14 +1080,14 @@ export default function Dashboard({
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">📋</span>
+                                    <History className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="font-semibold text-sm">
                                             9. Buka Riwayat Transaksi
                                         </p>
                                         <p className="text-gray-400 text-sm mt-1">
                                             Tekan tombol{" "}
-                                            <strong>"📋 Riwayat"</strong> di
+                                            <strong>"Riwayat"</strong> di
                                             pojok kiri atas untuk melihat daftar
                                             semua transaksi yang sudah dibuat.
                                         </p>
@@ -1182,7 +1095,7 @@ export default function Dashboard({
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">🧾</span>
+                                    <FileText className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="font-semibold text-sm">
                                             10. Lihat Detail Transaksi
@@ -1194,13 +1107,13 @@ export default function Dashboard({
                                             rincian barang, total bayar, dan
                                             kembalian. Dari sini juga bisa cetak
                                             ulang strukmu dengan tombol{" "}
-                                            <strong>"🖨️ Cetak Struk"</strong>.
+                                            <strong>"Cetak Struk"</strong>.
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">🚫</span>
+                                    <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="font-semibold text-sm">
                                             11. Membatalkan Transaksi
@@ -1211,15 +1124,15 @@ export default function Dashboard({
                                             <strong>Detail</strong>{" "}
                                             transaksinya, lalu tekan{" "}
                                             <strong className="text-red-400">
-                                                "🚫 Batalkan Transaksi"
+                                                "Batalkan Transaksi"
                                             </strong>
                                             . Akan muncul konfirmasi — tekan{" "}
                                             <strong>"Batalkan"</strong> untuk
                                             memastikan. Stok barang akan
                                             otomatis dikembalikan.
                                             <br />
-                                            <span className="text-yellow-400">
-                                                ⚠️ Hati-hati, transaksi yang
+                                            <span className="text-yellow-400 flex items-center gap-1 mt-1">
+                                                <AlertTriangle className="w-3.5 h-3.5" /> Hati-hati, transaksi yang
                                                 sudah dibatalkan tidak bisa
                                                 dikembalikan lagi!
                                             </span>
@@ -1228,7 +1141,7 @@ export default function Dashboard({
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">🌐</span>
+                                    <Wifi className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="font-semibold text-sm">
                                             12. Kalau Internet Mati
@@ -1247,7 +1160,7 @@ export default function Dashboard({
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">🚪</span>
+                                    <LogOut className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="font-semibold text-sm">
                                             13. Logout (Selesai Kerja)
@@ -1266,7 +1179,7 @@ export default function Dashboard({
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">📞</span>
+                                    <Phone className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="font-semibold text-sm">
                                             Masih Bingung?
@@ -1281,10 +1194,10 @@ export default function Dashboard({
                             </div>
 
                             {/* Footer */}
-                            <div className="p-5 border-t border-gray-700">
+                            <div className="p-5 border-t border-theme-border shrink-0">
                                 <button
                                     onClick={() => setShowHelpModal(false)}
-                                    className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg transition"
+                                    className="w-full bg-theme-accent hover:bg-theme-accent-hover text-white font-bold py-3 rounded-lg transition"
                                 >
                                     Mengerti
                                 </button>
@@ -1295,15 +1208,15 @@ export default function Dashboard({
 
                 {/* Modal Setup Sesi */}
                 {showSessionModal && (
-                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-                        <div className="bg-[#161b22] rounded-2xl p-6 w-full max-w-md border border-gray-700">
+                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 animate-fade-in">
+                        <div className="bg-theme-panel rounded-2xl p-6 w-full max-w-md border border-theme-border text-theme-text shadow-2xl animate-modal-pop">
                             <div className="flex items-center gap-3 mb-2">
-                                <span className="text-xl">⚙️</span>
-                                <h2 className="text-lg font-bold">
+                                <Settings className="w-5 h-5 text-theme-accent" />
+                                <h2 className="text-lg font-bold text-theme-text">
                                     Setup Sesi Kasir
                                 </h2>
                             </div>
-                            <p className="text-gray-400 text-sm mb-5">
+                            <p className="text-theme-muted text-sm mb-5">
                                 Pilih kios dan shift untuk sesi ini
                             </p>
 
@@ -1316,16 +1229,16 @@ export default function Dashboard({
                                         onClick={() => setSelectedKios(kios.id)}
                                         className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer border transition ${
                                             selectedKios === kios.id
-                                                ? "border-cyan-500 bg-cyan-500/10"
-                                                : "border-gray-700 bg-[#0d1117] hover:border-gray-500"
+                                                ? "border-theme-accent bg-theme-accent/10"
+                                                : "border-theme-border bg-theme-bg hover:border-theme-muted"
                                         }`}
                                     >
-                                        <span className="text-xl">🏪</span>
+                                        <Store className="w-5 h-5 text-theme-accent" />
                                         <div>
                                             <p className="text-sm font-medium">
                                                 {kios.name}
                                             </p>
-                                            <p className="text-xs text-gray-400">
+                                            <p className="text-xs text-theme-muted">
                                                 {kios.location}
                                             </p>
                                         </div>
@@ -1344,20 +1257,22 @@ export default function Dashboard({
                                         }
                                         className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer border transition ${
                                             selectedShift === shift.id
-                                                ? "border-cyan-500 bg-cyan-500/10"
-                                                : "border-gray-700 bg-[#0d1117] hover:border-gray-500"
+                                                ? "border-theme-accent bg-theme-accent/10"
+                                                : "border-theme-border bg-theme-bg hover:border-theme-muted"
                                         }`}
                                     >
                                         <span className="text-xl">
-                                            {shift.name.includes("Pagi")
-                                                ? "☀️"
-                                                : "🌙"}
+                                            {shift.name.includes("Pagi") ? (
+                                                <Sun className="w-5 h-5 text-yellow-400" />
+                                            ) : (
+                                                <Moon className="w-5 h-5 text-blue-400" />
+                                            )}
                                         </span>
                                         <div>
                                             <p className="text-sm font-medium">
                                                 {shift.name}
                                             </p>
-                                            <p className="text-xs text-gray-400">
+                                            <p className="text-xs text-theme-muted">
                                                 {shift.start_time} -{" "}
                                                 {shift.end_time}
                                             </p>
@@ -1373,7 +1288,7 @@ export default function Dashboard({
                                         onClick={() =>
                                             setShowSessionModal(false)
                                         }
-                                        className="flex-1 py-2 rounded-lg border border-gray-600 text-sm hover:bg-gray-800 transition"
+                                        className="flex-1 py-2 rounded-lg border border-theme-border text-sm hover:bg-theme-border transition text-theme-text"
                                     >
                                         Batal
                                     </button>
@@ -1381,7 +1296,7 @@ export default function Dashboard({
                                 <button
                                     onClick={startSession}
                                     disabled={!selectedKios || !selectedShift}
-                                    className="flex-1 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm transition"
+                                    className="flex-1 py-2 rounded-lg bg-theme-accent hover:bg-theme-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm transition"
                                 >
                                     Mulai Sesi
                                 </button>
@@ -1391,19 +1306,19 @@ export default function Dashboard({
                 )}
                 {/* Modal Struk */}
                 {receiptData && (
-                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                        <div className="bg-[#161b22] rounded-2xl w-full max-w-lg border border-gray-700 shadow-2xl flex flex-col max-h-[90vh]">
+                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fade-in">
+                        <div className="bg-theme-panel rounded-2xl w-full max-w-lg border border-theme-border shadow-2xl flex flex-col max-h-[90vh] text-theme-text animate-modal-pop">
                             {/* Header Modal */}
-                            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
+                            <div className="flex items-center justify-between px-6 py-4 border-b border-theme-border">
                                 <div className="flex items-center gap-2">
-                                    <span>🧾</span>
+                                    <FileText className="w-5 h-5 text-theme-accent" />
                                     <span className="font-bold">
                                         Struk Pembayaran
                                     </span>
                                 </div>
                                 <button
                                     onClick={() => setReceiptData(null)}
-                                    className="text-gray-400 hover:text-white text-xl"
+                                    className="text-theme-muted hover:text-theme-text text-xl"
                                 >
                                     ✕
                                 </button>
@@ -1413,18 +1328,18 @@ export default function Dashboard({
                             <div className="p-6 overflow-auto flex-1">
                                 {/* Header Toko */}
                                 <div className="text-center mb-4">
-                                    <div className="bg-[#0d1117] w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2">
-                                        <span className="text-2xl">🧾</span>
+                                    <div className="bg-theme-bg w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2 border border-theme-border/50">
+                                        <FileText className="w-6 h-6 text-theme-accent" />
                                     </div>
-                                    <p className="font-bold text-white">
+                                    <p className="font-bold text-theme-text">
                                         NICKY FROZEN
                                     </p>
-                                    <p className="text-xs text-gray-400">
+                                    <p className="text-xs text-theme-muted">
                                         {receiptData.kasir_session?.kios?.name}{" "}
                                         |{" "}
                                         {receiptData.kasir_session?.shift?.name}
                                     </p>
-                                    <p className="text-xs text-gray-400">
+                                    <p className="text-xs text-theme-muted">
                                         {new Date(
                                             receiptData.created_at,
                                         ).toLocaleString("id-ID", {
@@ -1435,13 +1350,13 @@ export default function Dashboard({
                                             minute: "2-digit",
                                         })}
                                     </p>
-                                    <p className="text-xs text-gray-500 mt-1">
+                                    <p className="text-xs text-theme-muted mt-1 italic">
                                         No: {receiptData.invoice_number}
                                     </p>
                                 </div>
 
                                 {/* Divider */}
-                                <div className="border-t border-dashed border-gray-600 my-3" />
+                                <div className="border-t border-dashed border-theme-border my-3" />
 
                                 {/* Items */}
                                 <div className="space-y-3 mb-3">
@@ -1451,22 +1366,20 @@ export default function Dashboard({
                                             className="flex justify-between items-start"
                                         >
                                             <div className="flex items-center gap-2">
-                                                <div className="bg-[#0d1117] p-1.5 rounded">
-                                                    <span className="text-sm">
-                                                        🍱
-                                                    </span>
+                                                <div className="bg-theme-bg p-1.5 rounded flex items-center justify-center border border-theme-border/50">
+                                                    <Package className="w-4 h-4 text-theme-accent" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium">
+                                                    <p className="text-sm font-medium text-theme-text">
                                                         {item.product?.name}
                                                     </p>
-                                                    <p className="text-xs text-gray-400">
+                                                    <p className="text-xs text-theme-muted">
                                                         {item.quantity} x{" "}
                                                         {formatRp(item.price)}
                                                     </p>
                                                 </div>
                                             </div>
-                                            <span className="text-sm font-medium">
+                                            <span className="text-sm font-medium text-theme-text">
                                                 {formatRp(item.subtotal)}
                                             </span>
                                         </div>
@@ -1474,17 +1387,17 @@ export default function Dashboard({
                                 </div>
 
                                 {/* Divider */}
-                                <div className="border-t border-dashed border-gray-600 my-3" />
+                                <div className="border-t border-dashed border-theme-border my-3" />
 
                                 {/* Total */}
-                                <div className="bg-[#0d1117] rounded-xl p-4 space-y-2">
-                                    <div className="flex justify-between font-bold text-base">
+                                <div className="bg-theme-bg rounded-xl p-4 space-y-2 border border-theme-border/50">
+                                    <div className="flex justify-between font-bold text-base text-theme-text">
                                         <span>TOTAL</span>
                                         <span>
                                             {formatRp(receiptData.total_amount)}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between text-sm text-gray-400">
+                                    <div className="flex justify-between text-sm text-theme-muted">
                                         <span>
                                             Pembayaran (
                                             {receiptData.payment_method ===
@@ -1493,11 +1406,11 @@ export default function Dashboard({
                                                 : "Non-Tunai"}
                                             )
                                         </span>
-                                        <span>
+                                        <span className="text-theme-text font-medium">
                                             {formatRp(receiptData.paid_amount)}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between text-sm font-semibold text-cyan-400">
+                                    <div className="flex justify-between text-sm font-semibold text-theme-accent">
                                         <span>Kembalian</span>
                                         <span>
                                             {formatRp(
@@ -1509,13 +1422,13 @@ export default function Dashboard({
 
                                 {/* Footer */}
                                 <div className="text-center mt-4 space-y-1">
-                                    <p className="text-xs text-gray-400">
+                                    <p className="text-xs text-theme-muted">
                                         Kasir: {receiptData.user?.name}
                                     </p>
-                                    <p className="text-xs text-gray-500">
+                                    <p className="text-xs text-theme-muted">
                                         ✨ Terima kasih telah berbelanja! ✨
                                     </p>
-                                    <p className="text-xs text-gray-500">
+                                    <p className="text-xs text-theme-muted">
                                         Simpan struk ini sebagai bukti
                                         pembelian.
                                     </p>
@@ -1529,15 +1442,15 @@ export default function Dashboard({
                                         setReceiptData(null);
                                         router.reload({ only: ["products"] });
                                     }}
-                                    className="flex-1 py-2.5 rounded-xl border border-gray-600 text-sm font-semibold hover:bg-gray-800 transition"
+                                    className="flex-1 py-2.5 rounded-xl border border-theme-border text-sm font-semibold hover:bg-theme-border transition text-theme-text"
                                 >
                                     Tutup
                                 </button>
                                 <button
                                     onClick={printReceipt}
-                                    className="flex-1 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-white text-sm font-semibold transition flex items-center justify-center gap-2"
+                                    className="flex-1 py-2.5 rounded-xl bg-theme-accent hover:bg-theme-accent-hover text-white text-sm font-semibold transition flex items-center justify-center gap-2 shadow"
                                 >
-                                    🖨️ Cetak
+                                    <Printer className="w-4 h-4 text-white" /> Cetak
                                 </button>
                             </div>
                         </div>

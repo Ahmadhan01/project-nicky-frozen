@@ -1,5 +1,7 @@
 import { Head, router } from "@inertiajs/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import AdminNavbar from "@/Components/AdminNavbar";
+import { HelpCircle, Download, Calendar, Coins, TrendingUp, CreditCard, Award, Phone } from "lucide-react";
 import {
     BarChart,
     Bar,
@@ -31,13 +33,6 @@ export default function Recap({
         return "Rp " + Number(val).toLocaleString("id-ID");
     };
 
-    const [time, setTime] = useState(new Date());
-
-    useEffect(() => {
-        const timer = setInterval(() => setTime(new Date()), 1000);
-        return () => clearInterval(timer);
-    }, []);
-
     const formatRpFull = (val) => "Rp " + Number(val).toLocaleString("id-ID");
 
     const applyFilter = () => {
@@ -57,22 +52,19 @@ export default function Recap({
             : 0;
     const nonCashPercent = 100 - cashPercent;
 
-    const [showUserMenu, setShowUserMenu] = useState(false);
     const [showHelpModal, setShowHelpModal] = useState(false);
 
     const pieData = [
-        { name: "Cash", value: stats.cash_total, color: "#22d3ee" },
-        { name: "Non-Cash", value: stats.non_cash_total, color: "#374151" },
+        { name: "Cash", value: stats.cash_total, color: "var(--theme-accent)" },
+        { name: "Non-Cash", value: stats.non_cash_total, color: "var(--theme-muted)" },
     ];
-
-    const logout = () => router.post(route("logout"));
 
     const CustomTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-[#1f2937] border border-gray-700 rounded-lg px-3 py-2 text-xs">
-                    <p className="text-gray-400">{label}</p>
-                    <p className="text-cyan-400 font-bold">
+                <div className="bg-theme-panel border border-theme-border rounded-lg px-3 py-2 text-xs shadow-md text-theme-text">
+                    <p className="text-theme-muted">{label}</p>
+                    <p className="text-theme-accent font-bold">
                         {formatRp(payload[0].value)}
                     </p>
                 </div>
@@ -84,184 +76,69 @@ export default function Recap({
     return (
         <>
             <Head title="Rekap Keuangan" />
-            <div className="h-screen bg-[#0d1117] text-white flex flex-col overflow-hidden">
+            <div className="h-screen bg-theme-bg text-theme-text flex flex-col overflow-hidden">
                 {/* Navbar */}
-                <nav className="bg-[#161b22] px-6 py-3 flex items-center justify-between border-b border-gray-800">
-                    <div className="flex items-center gap-2">
-                        <img
-                            src="/LOGO_NO_TEXT.png"
-                            alt="Nicky Frozen"
-                            className="h-8 w-8 object-contain"
-                        />
-                        <div>
-                            <p className="font-bold text-sm leading-none">
-                                Nicky Frozen
-                            </p>
-                            <p className="text-gray-500 text-xs">
-                                SISTEM KASIR
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() =>
-                                router.visit(route("admin.dashboard"))
-                            }
-                            className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
-                        >
-                            🏠 Dashboard
-                        </button>
-                        <button
-                            onClick={() => router.visit(route("admin.history"))}
-                            className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
-                        >
-                            📋 Riwayat
-                        </button>
-                        <button
-                            onClick={() =>
-                                router.visit(route("admin.products"))
-                            }
-                            className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
-                        >
-                            📦 Produk
-                        </button>
-                        <button className="bg-[#1f2937] px-4 py-2 rounded-lg text-sm text-cyan-400 flex items-center gap-2">
-                            📊 Rekap
-                        </button>
-
-                        <button
-                            onClick={() => router.visit(route("admin.audit"))}
-                            className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
-                        >
-                            🔍 Audit
-                        </button>
-                        {auth.user.role === "owner" && (
-                            <button
-                                onClick={() =>
-                                    router.visit(route("admin.master"))
-                                }
-                                className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
-                            >
-                                👑 Master
-                            </button>
-                        )}
-
-                        <button
-                            onClick={() => setShowHelpModal(true)}
-                            className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
-                        >
-                            ❓ Bantuan
-                        </button>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <span className="bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">
-                            ● Online
-                        </span>
-                        <span className="text-sm text-gray-300">
-                            {time.toLocaleTimeString("id-ID", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            })}
-                        </span>
-                        <div className="relative">
-                            <button
-                                onClick={() => setShowUserMenu((prev) => !prev)}
-                                className="flex items-center gap-2 hover:opacity-80 transition"
-                            >
-                                <div className="w-7 h-7 bg-cyan-500 rounded-full flex items-center justify-center text-xs font-bold">
-                                    {auth.user.name.charAt(0).toUpperCase()}
-                                </div>
-                                <span className="text-sm">
-                                    {auth.user.name} ▾
-                                </span>
-                            </button>
-
-                            {showUserMenu && (
-                                <>
-                                    {/* Backdrop */}
-                                    <div
-                                        className="fixed inset-0 z-40"
-                                        onClick={() => setShowUserMenu(false)}
-                                    />
-
-                                    {/* Dropdown */}
-                                    <div className="absolute right-0 mt-2 w-48 bg-[#161b22] border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
-                                        <div className="px-4 py-3 border-b border-gray-700">
-                                            <p className="text-sm font-semibold text-white">
-                                                {auth.user.name}
-                                            </p>
-                                            <p className="text-xs text-gray-400">
-                                                {auth.user.email}
-                                            </p>
-                                            <span className="text-xs bg-cyan-900/50 text-cyan-400 px-2 py-0.5 rounded-full mt-1 inline-block capitalize">
-                                                {auth.user.role}
-                                            </span>
-                                        </div>
-                                        <button
-                                            onClick={logout}
-                                            className="w-full px-4 py-3 text-left text-sm text-red-400 hover:bg-red-900/30 transition flex items-center gap-2"
-                                        >
-                                            🚪 Logout
-                                        </button>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </nav>
+                <AdminNavbar activeTab="recap" />
 
                 {/* Content */}
-                {/* Content */}
-                <div className="flex-1 flex flex-col overflow-hidden p-6">
+                <div className="flex-1 w-full max-w-[1440px] mx-auto flex flex-col overflow-hidden p-6">
                     {/* Title */}
                     <div className="flex items-center justify-between mb-5">
                         <div>
-                            <h1 className="text-xl font-bold">
+                            <h1 className="text-xl font-bold text-theme-text">
                                 Rekap Keuangan
                             </h1>
-                            <p className="text-gray-400 text-sm">
+                            <p className="text-theme-muted text-sm">
                                 Laporan penjualan dan analitik bisnis
                             </p>
                         </div>
-                        <button
-                            onClick={() => {
-                                const headers = [
-                                    "Produk",
-                                    "QTY Terjual",
-                                    "Total Pendapatan",
-                                    "% Kontribusi",
-                                ];
-                                const rows = breakdown.map((b) => [
-                                    b.name,
-                                    b.qty + " " + b.unit,
-                                    formatRpFull(b.revenue),
-                                    b.contribution + "%",
-                                ]);
-                                const csv = [headers, ...rows]
-                                    .map((r) => r.join(","))
-                                    .join("\n");
-                                const blob = new Blob([csv], {
-                                    type: "text/csv",
-                                });
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement("a");
-                                a.href = url;
-                                a.download = "rekap-nicky-frozen.csv";
-                                a.click();
-                            }}
-                            className="bg-cyan-500 hover:bg-cyan-400 text-white font-semibold px-4 py-2 rounded-xl flex items-center gap-2 transition text-sm"
-                        >
-                            📥 Export CSV
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setShowHelpModal(true)}
+                                className="bg-theme-panel hover:bg-theme-border border border-theme-border text-theme-text font-semibold px-4 py-2 rounded-xl flex items-center gap-2 transition text-sm shadow-sm"
+                            >
+                                <HelpCircle className="w-4 h-4 text-theme-muted" /> Panduan
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const headers = [
+                                        "Produk",
+                                        "QTY Terjual",
+                                        "Total Pendapatan",
+                                        "% Kontribusi",
+                                    ];
+                                    const rows = breakdown.map((b) => [
+                                        b.name,
+                                        b.qty + " " + b.unit,
+                                        formatRpFull(b.revenue),
+                                        b.contribution + "%",
+                                    ]);
+                                    const csv = [headers, ...rows]
+                                        .map((r) => r.join(","))
+                                        .join("\n");
+                                    const blob = new Blob([csv], {
+                                        type: "text/csv",
+                                    });
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement("a");
+                                    a.href = url;
+                                    a.download = "rekap-nicky-frozen.csv";
+                                    a.click();
+                                }}
+                                className="bg-theme-accent hover:bg-theme-accent-hover text-white font-semibold px-4 py-2 rounded-xl flex items-center gap-2 transition text-sm shadow-sm"
+                            >
+                                <Download className="w-4 h-4 text-white" /> Export CSV
+                            </button>
+                        </div>
                     </div>
 
                     {/* Filter */}
                     <div className="flex items-center gap-3 mb-5">
-                        <p className="text-sm text-gray-400">Kios</p>
+                        <p className="text-sm text-theme-muted">Kios</p>
                         <select
                             value={selectedKios}
                             onChange={(e) => setSelectedKios(e.target.value)}
-                            className="bg-[#161b22] border border-gray-700 text-sm rounded-lg px-3 py-2 text-white outline-none"
+                            className="bg-theme-panel border border-theme-border text-sm rounded-lg pl-3 pr-8 py-2 text-theme-text outline-none focus:border-theme-accent"
                         >
                             <option value="">Semua Kios</option>
                             {kiosList.map((k) => (
@@ -273,7 +150,7 @@ export default function Recap({
                         <select
                             value={selectedPeriod}
                             onChange={(e) => setSelectedPeriod(e.target.value)}
-                            className="bg-[#161b22] border border-gray-700 text-sm rounded-lg px-3 py-2 text-white outline-none"
+                            className="bg-theme-panel border border-theme-border text-sm rounded-lg pl-3 pr-8 py-2 text-theme-text outline-none focus:border-theme-accent"
                         >
                             <option value="daily">Harian</option>
                             <option value="weekly">Mingguan</option>
@@ -281,7 +158,7 @@ export default function Recap({
                         </select>
                         <button
                             onClick={applyFilter}
-                            className="bg-cyan-500 hover:bg-cyan-400 text-white text-sm px-4 py-2 rounded-lg transition font-semibold"
+                            className="bg-theme-accent hover:bg-theme-accent-hover text-white text-sm px-4 py-2 rounded-lg transition font-semibold shadow-sm"
                         >
                             Tampilkan
                         </button>
@@ -290,51 +167,51 @@ export default function Recap({
                     <div className="flex-1 overflow-y-auto pr-1 space-y-6">
                         {/* Stats Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                            <div className="bg-[#161b22] rounded-xl border border-gray-800 p-5">
+                            <div className="bg-theme-panel rounded-xl border border-theme-border p-5 shadow-sm animate-slide-up" style={{ animationDelay: '50ms' }}>
                                 <div className="text-2xl mb-2">💰</div>
-                                <p className="text-xs text-gray-400 uppercase tracking-wide">
+                                <p className="text-xs text-theme-muted uppercase tracking-wide font-semibold">
                                     Total Pendapatan
                                 </p>
-                                <p className="text-3xl font-bold text-white mt-1">
+                                <p className="text-3xl font-bold text-theme-text mt-1">
                                     {formatRp(stats.total_revenue)}
                                 </p>
-                                <p className="text-xs text-gray-500 mt-1">
+                                <p className="text-xs text-theme-muted mt-1">
                                     {stats.total_count} Transaksi
                                 </p>
                             </div>
-                            <div className="bg-[#161b22] rounded-xl border border-gray-800 p-5">
+                            <div className="bg-theme-panel rounded-xl border border-theme-border p-5 shadow-sm animate-slide-up" style={{ animationDelay: '100ms' }}>
                                 <div className="text-2xl mb-2">💵</div>
-                                <p className="text-xs text-gray-400 uppercase tracking-wide">
+                                <p className="text-xs text-theme-muted uppercase tracking-wide font-semibold">
                                     Pembayaran Cash
                                 </p>
-                                <p className="text-3xl font-bold text-white mt-1">
+                                <p className="text-3xl font-bold text-theme-text mt-1">
                                     {formatRp(stats.cash_total)}
                                 </p>
-                                <p className="text-xs text-gray-500 mt-1">
+                                <p className="text-xs text-theme-muted mt-1">
                                     {stats.cash_count} Transaksi
                                 </p>
                             </div>
-                            <div className="bg-[#161b22] rounded-xl border border-gray-800 p-5">
+                            <div className="bg-theme-panel rounded-xl border border-theme-border p-5 shadow-sm animate-slide-up" style={{ animationDelay: '150ms' }}>
                                 <div className="text-2xl mb-2">💳</div>
-                                <p className="text-xs text-gray-400 uppercase tracking-wide">
+                                <p className="text-xs text-theme-muted uppercase tracking-wide font-semibold">
                                     Non-Cash (QRIS)
                                 </p>
-                                <p className="text-3xl font-bold text-white mt-1">
+                                <p className="text-3xl font-bold text-theme-text mt-1">
                                     {formatRp(stats.non_cash_total)}
                                 </p>
-                                <p className="text-xs text-gray-500 mt-1">
+                                <p className="text-xs text-theme-muted mt-1">
                                     {stats.non_cash_count} Transaksi
                                 </p>
                             </div>
-                            <div className="bg-[#161b22] rounded-xl border border-gray-800 p-5">
+                            <div className="bg-theme-panel rounded-xl border border-theme-border p-5 shadow-sm animate-slide-up" style={{ animationDelay: '200ms' }}>
                                 <div className="text-2xl mb-2">📈</div>
-                                <p className="text-xs text-gray-400 uppercase tracking-wide">
+                                <p className="text-xs text-theme-muted uppercase tracking-wide font-semibold">
                                     Rata-rata Transaksi
                                 </p>
-                                <p className="text-3xl font-bold text-white mt-1">
+                                <p className="text-3xl font-bold text-theme-text mt-1">
                                     {formatRp(stats.avg_transaction)}
                                 </p>
-                                <p className="text-xs text-gray-500 mt-1">
+                                <p className="text-xs text-theme-muted mt-1">
                                     Per Transaksi
                                 </p>
                             </div>
@@ -343,10 +220,10 @@ export default function Recap({
                         {/* Charts */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
                             {/* Bar Chart */}
-                            <div className="lg:col-span-2 bg-[#161b22] rounded-xl border border-gray-800 p-5">
+                            <div className="lg:col-span-2 bg-theme-panel rounded-xl border border-theme-border p-5 shadow-sm animate-slide-up" style={{ animationDelay: '250ms' }}>
                                 <div className="flex items-center gap-2 mb-4">
                                     <span>📈</span>
-                                    <p className="text-sm font-semibold">
+                                    <p className="text-sm font-semibold text-theme-text">
                                         Penjualan per Hari (
                                         {selectedPeriod === "weekly"
                                             ? "7 Terakhir"
@@ -361,7 +238,7 @@ export default function Recap({
                                         <XAxis
                                             dataKey="date"
                                             tick={{
-                                                fill: "#6b7280",
+                                                fill: "var(--theme-muted)",
                                                 fontSize: 11,
                                             }}
                                             axisLine={false}
@@ -384,13 +261,13 @@ export default function Recap({
                                             >
                                                 <stop
                                                     offset="0%"
-                                                    stopColor="#22d3ee"
+                                                    stopColor="var(--theme-accent)"
                                                     stopOpacity={0.9}
                                                 />
                                                 <stop
                                                     offset="100%"
-                                                    stopColor="#0891b2"
-                                                    stopOpacity={0.3}
+                                                    stopColor="var(--theme-accent)"
+                                                    stopOpacity={0.1}
                                                 />
                                             </linearGradient>
                                         </defs>
@@ -399,8 +276,8 @@ export default function Recap({
                             </div>
 
                             {/* Pie Chart */}
-                            <div className="bg-[#161b22] rounded-xl border border-gray-800 p-5">
-                                <div className="flex items-center gap-2 mb-4">
+                            <div className="bg-theme-panel rounded-xl border border-theme-border p-5 shadow-sm animate-slide-up" style={{ animationDelay: '300ms' }}>
+                                <div className="flex items-center gap-2 mb-4 text-theme-text">
                                     <span>💳</span>
                                     <p className="text-sm font-semibold">
                                         Metode Pembayaran
@@ -429,7 +306,7 @@ export default function Recap({
                                             x={90}
                                             y={85}
                                             textAnchor="middle"
-                                            fill="white"
+                                            fill="var(--theme-muted)"
                                             fontSize={11}
                                             fontWeight="bold"
                                         >
@@ -437,10 +314,10 @@ export default function Recap({
                                         </text>
                                         <text
                                             x={90}
-                                            y={100}
+                                            y={105}
                                             textAnchor="middle"
-                                            fill="white"
-                                            fontSize={14}
+                                            fill="var(--theme-text)"
+                                            fontSize={16}
                                             fontWeight="bold"
                                         >
                                             {stats.total_count}
@@ -448,25 +325,25 @@ export default function Recap({
                                     </PieChart>
                                 </div>
                                 <div className="space-y-2 mt-2">
-                                    <div className="flex items-center justify-between text-xs">
+                                    <div className="flex items-center justify-between text-xs text-theme-text">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-3 h-3 rounded-full bg-cyan-400" />
-                                            <span className="text-gray-300">
+                                            <div className="w-3 h-3 rounded-full bg-theme-accent" />
+                                            <span className="text-theme-muted">
                                                 Cash — {cashPercent}%
                                             </span>
                                         </div>
-                                        <span className="text-gray-400">
+                                        <span className="text-theme-text font-medium">
                                             {formatRpFull(stats.cash_total)}
                                         </span>
                                     </div>
-                                    <div className="flex items-center justify-between text-xs">
+                                    <div className="flex items-center justify-between text-xs text-theme-text">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-3 h-3 rounded-full bg-gray-600" />
-                                            <span className="text-gray-300">
+                                            <div className="w-3 h-3 rounded-full bg-theme-border" />
+                                            <span className="text-theme-muted">
                                                 Non-Cash — {nonCashPercent}%
                                             </span>
                                         </div>
-                                        <span className="text-gray-400">
+                                        <span className="text-theme-text font-medium">
                                             {formatRpFull(stats.non_cash_total)}
                                         </span>
                                     </div>
@@ -475,62 +352,64 @@ export default function Recap({
                         </div>
 
                         {/* Breakdown per Produk */}
-                        <div className="bg-[#161b22] rounded-xl border border-gray-800 overflow-hidden flex flex-col max-h-72">
-                            <div className="px-5 py-4 border-b border-gray-800">
-                                <p className="font-semibold text-sm">
+                        <div className="bg-theme-panel rounded-xl border border-theme-border overflow-hidden flex flex-col max-h-[360px] shadow-sm animate-slide-up" style={{ animationDelay: '350ms' }}>
+                            <div className="px-5 py-4 border-b border-theme-border bg-theme-bg/30">
+                                <p className="font-semibold text-sm text-theme-text">
                                     Breakdown per Produk
                                 </p>
                             </div>
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="border-b border-gray-800 text-gray-400 text-xs uppercase">
-                                        <th className="px-5 py-3 text-left">
-                                            Produk
-                                        </th>
-                                        <th className="px-5 py-3 text-left">
-                                            QTY Terjual
-                                        </th>
-                                        <th className="px-5 py-3 text-left">
-                                            Total Pendapatan
-                                        </th>
-                                        <th className="px-5 py-3 text-left">
-                                            % Kontribusi
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {breakdown.length === 0 ? (
-                                        <tr>
-                                            <td
-                                                colSpan={4}
-                                                className="text-center py-8 text-gray-500"
-                                            >
-                                                Belum ada data
-                                            </td>
+                            <div className="overflow-y-auto">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="border-b border-theme-border text-theme-muted text-xs uppercase bg-theme-bg/50">
+                                            <th className="px-5 py-3 text-left">
+                                                Produk
+                                            </th>
+                                            <th className="px-5 py-3 text-left">
+                                                QTY Terjual
+                                            </th>
+                                            <th className="px-5 py-3 text-left">
+                                                Total Pendapatan
+                                            </th>
+                                            <th className="px-5 py-3 text-left">
+                                                % Kontribusi
+                                            </th>
                                         </tr>
-                                    ) : (
-                                        breakdown.map((item, i) => (
-                                            <tr
-                                                key={i}
-                                                className="border-b border-gray-800 hover:bg-[#1f2937] transition"
-                                            >
-                                                <td className="px-5 py-3">
-                                                    {item.name}
-                                                </td>
-                                                <td className="px-5 py-3 text-gray-300">
-                                                    {item.qty} {item.unit}
-                                                </td>
-                                                <td className="px-5 py-3 font-semibold">
-                                                    {formatRpFull(item.revenue)}
-                                                </td>
-                                                <td className="px-5 py-3 text-gray-300">
-                                                    {item.contribution}%
+                                    </thead>
+                                    <tbody>
+                                        {breakdown.length === 0 ? (
+                                            <tr>
+                                                <td
+                                                    colSpan={4}
+                                                    className="text-center py-8 text-theme-muted"
+                                                >
+                                                    Belum ada data
                                                 </td>
                                             </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
+                                        ) : (
+                                            breakdown.map((item, i) => (
+                                                <tr
+                                                    key={i}
+                                                    className="border-b border-theme-border hover:bg-theme-border/30 transition text-theme-text"
+                                                >
+                                                    <td className="px-5 py-3 font-medium">
+                                                        {item.name}
+                                                    </td>
+                                                    <td className="px-5 py-3 text-theme-muted">
+                                                        {item.qty} {item.unit}
+                                                    </td>
+                                                    <td className="px-5 py-3 font-semibold text-theme-text">
+                                                        {formatRpFull(item.revenue)}
+                                                    </td>
+                                                    <td className="px-5 py-3 text-theme-muted">
+                                                        {item.contribution}%
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -538,72 +417,68 @@ export default function Recap({
                 {/* Modal Bantuan Halaman Rekap */}
                 {showHelpModal && (
                     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                        <div className="bg-[#161b22] rounded-2xl w-full max-w-lg border border-gray-700 max-h-[85vh] flex flex-col">
+                        <div className="bg-theme-panel rounded-2xl w-full max-w-lg border border-theme-border max-h-[85vh] flex flex-col text-theme-text">
                             {/* Header */}
-                            <div className="flex items-center justify-between p-5 border-b border-gray-700">
+                            <div className="flex items-center justify-between p-5 border-b border-theme-border">
                                 <div className="flex items-center gap-3">
-                                    <span className="text-2xl">❓</span>
-                                    <h2 className="text-lg font-bold">
+                                    <HelpCircle className="w-6 h-6 text-theme-accent" />
+                                    <h2 className="text-lg font-bold text-theme-text">
                                         Panduan Membaca Rekap
                                     </h2>
                                 </div>
                                 <button
                                     onClick={() => setShowHelpModal(false)}
-                                    className="text-gray-400 hover:text-white text-xl"
+                                    className="text-theme-muted hover:text-theme-text text-xl"
                                 >
                                     ✕
                                 </button>
                             </div>
 
                             {/* Isi Panduan - Scrollable */}
-                            <div className="overflow-y-auto p-5 space-y-4">
+                            <div className="overflow-y-auto p-5 space-y-4 text-theme-text">
                                 <div className="flex gap-3">
-                                    <span className="text-xl">🎛️</span>
+                                    <Calendar className="w-5 h-5 text-theme-accent shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="font-semibold text-sm">
+                                        <p className="font-semibold text-sm text-theme-text">
                                             1. Memilih Kios & Periode
                                         </p>
-                                        <p className="text-gray-400 text-sm mt-1">
+                                        <p className="text-theme-muted text-sm mt-1">
                                             Pilih <strong>Kios</strong> kalau
                                             mau lihat laporan kios tertentu
                                             saja, dan pilih periode (
                                             <strong>
-                                                Harian/Mingguan/ Bulanan
+                                                Harian/Mingguan/Bulanan
                                             </strong>
-                                            ), lalu tekan{" "}
-                                            <strong>"Tampilkan"</strong>.
+                                            ), lalu tekan <strong>"Tampilkan"</strong>.
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">💰</span>
+                                    <Coins className="w-5 h-5 text-theme-accent shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="font-semibold text-sm">
+                                        <p className="font-semibold text-sm text-theme-text">
                                             2. Kartu Ringkasan
                                         </p>
-                                        <p className="text-gray-400 text-sm mt-1">
+                                        <p className="text-theme-muted text-sm mt-1">
                                             4 kotak di atas menunjukkan{" "}
                                             <strong>Total Pendapatan</strong>{" "}
                                             (semua transaksi),{" "}
                                             <strong>Pembayaran Cash</strong>,{" "}
                                             <strong>Non-Cash (QRIS)</strong>,
-                                            dan{" "}
-                                            <strong>
-                                                Rata-rata per Transaksi
-                                            </strong>{" "}
+                                            dan <strong>Rata-rata per Transaksi</strong>{" "}
                                             sesuai kios & periode yang dipilih.
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">📈</span>
+                                    <TrendingUp className="w-5 h-5 text-theme-accent shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="font-semibold text-sm">
+                                        <p className="font-semibold text-sm text-theme-text">
                                             3. Grafik Penjualan per Hari
                                         </p>
-                                        <p className="text-gray-400 text-sm mt-1">
+                                        <p className="text-theme-muted text-sm mt-1">
                                             Grafik batang menunjukkan naik-
                                             turunnya pendapatan dari hari ke
                                             hari. Makin tinggi batang, makin
@@ -613,16 +488,15 @@ export default function Recap({
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">💳</span>
+                                    <CreditCard className="w-5 h-5 text-theme-accent shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="font-semibold text-sm">
+                                        <p className="font-semibold text-sm text-theme-text">
                                             4. Grafik Metode Pembayaran
                                         </p>
-                                        <p className="text-gray-400 text-sm mt-1">
+                                        <p className="text-theme-muted text-sm mt-1">
                                             Diagram lingkaran menunjukkan
                                             perbandingan pelanggan yang bayar{" "}
-                                            <strong>Tunai</strong> vs{" "}
-                                            <strong>Non-Tunai</strong>. Angka di
+                                            <strong>Tunai</strong> vs <strong>Non-Tunai</strong>. Angka di
                                             tengah adalah total jumlah
                                             transaksi.
                                         </p>
@@ -630,12 +504,12 @@ export default function Recap({
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">🏆</span>
+                                    <Award className="w-5 h-5 text-theme-accent shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="font-semibold text-sm">
+                                        <p className="font-semibold text-sm text-theme-text">
                                             5. Tabel Produk Terlaris
                                         </p>
-                                        <p className="text-gray-400 text-sm mt-1">
+                                        <p className="text-theme-muted text-sm mt-1">
                                             Tabel di bawah menunjukkan produk
                                             mana yang paling banyak terjual,
                                             beserta kontribusinya (%) terhadap
@@ -646,14 +520,13 @@ export default function Recap({
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">📥</span>
+                                    <Download className="w-5 h-5 text-theme-accent shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="font-semibold text-sm">
+                                        <p className="font-semibold text-sm text-theme-text">
                                             6. Export CSV
                                         </p>
-                                        <p className="text-gray-400 text-sm mt-1">
-                                            Tekan{" "}
-                                            <strong>"📥 Export CSV"</strong>{" "}
+                                        <p className="text-theme-muted text-sm mt-1">
+                                            Tekan <strong>"Export CSV"</strong>{" "}
                                             untuk mengunduh laporan produk
                                             terlaris dalam bentuk file yang bisa
                                             dibuka di Excel/Google Sheets.
@@ -662,12 +535,12 @@ export default function Recap({
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">📞</span>
+                                    <Phone className="w-5 h-5 text-theme-accent shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="font-semibold text-sm">
+                                        <p className="font-semibold text-sm text-theme-text">
                                             Masih Bingung?
                                         </p>
-                                        <p className="text-gray-400 text-sm mt-1">
+                                        <p className="text-theme-muted text-sm mt-1">
                                             Hubungi developer/admin teknis kalau
                                             ada kendala yang tidak bisa diatasi
                                             sendiri.
@@ -677,10 +550,10 @@ export default function Recap({
                             </div>
 
                             {/* Footer */}
-                            <div className="p-5 border-t border-gray-700">
+                            <div className="p-5 border-t border-theme-border shrink-0">
                                 <button
                                     onClick={() => setShowHelpModal(false)}
-                                    className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg transition"
+                                    className="w-full bg-theme-accent hover:bg-theme-accent-hover text-white font-bold py-3 rounded-lg transition"
                                 >
                                     Mengerti
                                 </button>

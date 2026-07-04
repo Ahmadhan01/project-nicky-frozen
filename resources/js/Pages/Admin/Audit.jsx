@@ -1,5 +1,19 @@
 import { Head, router } from "@inertiajs/react";
 import { useState, useEffect } from "react";
+import AdminNavbar from "@/Components/AdminNavbar";
+import { 
+    CheckCircle2, 
+    Settings, 
+    Package, 
+    FileText, 
+    ClipboardList, 
+    HelpCircle, 
+    Search, 
+    RefreshCw, 
+    Lightbulb, 
+    Phone,
+    Info
+} from "lucide-react";
 
 export default function Audit({ auth, logs }) {
     const formatDate = (val) =>
@@ -15,40 +29,32 @@ export default function Audit({ auth, logs }) {
         switch (type) {
             case "transaction":
                 return {
-                    icon: "✅",
-                    bg: "bg-green-900/50",
-                    color: "text-green-400",
+                    icon: <CheckCircle2 className="w-5 h-5 text-green-500" />,
+                    bg: "bg-green-900/10 border border-green-500/20",
+                    color: "text-green-500 bg-green-900/10 border border-green-500/20",
                 };
             case "session":
                 return {
-                    icon: "⚙️",
-                    bg: "bg-blue-900/50",
-                    color: "text-blue-400",
+                    icon: <Settings className="w-5 h-5 text-blue-500" />,
+                    bg: "bg-blue-900/10 border border-blue-500/20",
+                    color: "text-blue-500 bg-blue-900/10 border border-blue-500/20",
                 };
             case "product":
                 return {
-                    icon: "📦",
-                    bg: "bg-yellow-900/50",
-                    color: "text-yellow-400",
+                    icon: <Package className="w-5 h-5 text-yellow-500" />,
+                    bg: "bg-yellow-900/10 border border-yellow-500/20",
+                    color: "text-yellow-500 bg-yellow-900/10 border border-yellow-500/20",
                 };
             default:
                 return {
-                    icon: "📋",
-                    bg: "bg-gray-800",
-                    color: "text-gray-400",
+                    icon: <FileText className="w-5 h-5 text-theme-muted" />,
+                    bg: "bg-theme-bg border border-theme-border",
+                    color: "text-theme-muted bg-theme-bg border border-theme-border",
                 };
         }
     };
 
-    const [time, setTime] = useState(new Date());
-
-    const [showUserMenu, setShowUserMenu] = useState(false);
     const [showHelpModal, setShowHelpModal] = useState(false);
-
-    useEffect(() => {
-        const timer = setInterval(() => setTime(new Date()), 1000);
-        return () => clearInterval(timer);
-    }, []);
 
     useEffect(() => {
         const pollLogs = setInterval(() => {
@@ -57,139 +63,35 @@ export default function Audit({ auth, logs }) {
         return () => clearInterval(pollLogs);
     }, []);
 
-    const logout = () => router.post(route("logout"));
-
     return (
         <>
             <Head title="Audit Trail" />
-            <div className="h-screen bg-[#0d1117] text-white flex flex-col overflow-hidden">
+            <div className="h-screen bg-theme-bg text-theme-text flex flex-col overflow-hidden">
                 {/* Navbar */}
-                <nav className="bg-[#161b22] px-6 py-3 flex items-center justify-between border-b border-gray-800">
-                    <div className="flex items-center gap-2">
-                        <img
-                            src="/LOGO_NO_TEXT.png"
-                            alt="Nicky Frozen"
-                            className="h-8 w-8 object-contain"
-                        />
-                        <div>
-                            <p className="font-bold text-sm leading-none">
-                                Nicky Frozen
-                            </p>
-                            <p className="text-gray-500 text-xs">
-                                SISTEM KASIR
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        
-                        <button onClick={() => router.visit(route('admin.dashboard'))} className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2">🏠 Dashboard</button>
-                        <button onClick={() => router.visit(route('admin.history'))} className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2">📋 Riwayat</button>
-                        <button
-                            onClick={() =>
-                                router.visit(route("admin.products"))
-                            }
-                            className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
-                        >
-                            📦 Produk
-                        </button>
-                        <button
-                            onClick={() => router.visit(route("admin.recap"))}
-                            className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
-                        >
-                            📊 Rekap
-                        </button>
-                        <button className="bg-[#1f2937] px-4 py-2 rounded-lg text-sm text-cyan-400 flex items-center gap-2">
-                            🔍 Audit
-                        </button>
-                        {auth.user.role === "owner" && (
-                            <button
-                                onClick={() =>
-                                    router.visit(route("admin.master"))
-                                }
-                                className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
-                            >
-                                👑 Master
-                            </button>
-                        )}
-
-                        <button
-                            onClick={() => setShowHelpModal(true)}
-                            className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white flex items-center gap-2"
-                        >
-                            ❓ Bantuan
-                        </button>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <span className="bg-green-900 text-green-400 text-xs px-2 py-1 rounded-full">
-                            ● Online
-                        </span>
-                        <span className="text-sm text-gray-300">
-                            {time.toLocaleTimeString("id-ID", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            })}
-                        </span>
-                        <div className="relative">
-                            <button
-                                onClick={() => setShowUserMenu((prev) => !prev)}
-                                className="flex items-center gap-2 hover:opacity-80 transition"
-                            >
-                                <div className="w-7 h-7 bg-cyan-500 rounded-full flex items-center justify-center text-xs font-bold">
-                                    {auth.user.name.charAt(0).toUpperCase()}
-                                </div>
-                                <span className="text-sm">
-                                    {auth.user.name} ▾
-                                </span>
-                            </button>
-
-                            {showUserMenu && (
-                                <>
-                                    {/* Backdrop */}
-                                    <div
-                                        className="fixed inset-0 z-40"
-                                        onClick={() => setShowUserMenu(false)}
-                                    />
-
-                                    {/* Dropdown */}
-                                    <div className="absolute right-0 mt-2 w-48 bg-[#161b22] border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
-                                        <div className="px-4 py-3 border-b border-gray-700">
-                                            <p className="text-sm font-semibold text-white">
-                                                {auth.user.name}
-                                            </p>
-                                            <p className="text-xs text-gray-400">
-                                                {auth.user.email}
-                                            </p>
-                                            <span className="text-xs bg-cyan-900/50 text-cyan-400 px-2 py-0.5 rounded-full mt-1 inline-block capitalize">
-                                                {auth.user.role}
-                                            </span>
-                                        </div>
-                                        <button
-                                            onClick={logout}
-                                            className="w-full px-4 py-3 text-left text-sm text-red-400 hover:bg-red-900/30 transition flex items-center gap-2"
-                                        >
-                                            🚪 Logout
-                                        </button>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </nav>
+                <AdminNavbar activeTab="audit" />
 
                 {/* Content */}
-                <div className="flex-1 flex flex-col overflow-hidden p-6">
-                    <div className="mb-6">
-                        <h1 className="text-xl font-bold">Audit Trail</h1>
-                        <p className="text-gray-400 text-sm">
-                            Log perubahan dan aktivitas sistem
-                        </p>
+                <div className="flex-1 w-full max-w-[1440px] mx-auto flex flex-col overflow-hidden p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h1 className="text-xl font-bold text-theme-text">Audit Trail</h1>
+                            <p className="text-theme-muted text-sm">
+                                Log perubahan dan aktivitas sistem
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => setShowHelpModal(true)}
+                            className="bg-theme-panel hover:bg-theme-border border border-theme-border text-theme-text font-semibold px-4 py-2 rounded-xl flex items-center gap-2 transition text-sm shadow-sm"
+                        >
+                            <HelpCircle className="w-4 h-4 text-theme-muted" /> Panduan
+                        </button>
                     </div>
 
                     {/* Log List */}
                     <div className="flex-1 overflow-y-auto space-y-3 pr-1">
                         {logs.length === 0 ? (
-                            <div className="text-center py-16 text-gray-500">
-                                <p className="text-4xl mb-2">📋</p>
+                            <div className="text-center py-16 text-theme-muted flex flex-col items-center">
+                                <ClipboardList className="w-12 h-12 text-theme-muted mb-2 opacity-50" />
                                 <p>Belum ada aktivitas tercatat</p>
                             </div>
                         ) : (
@@ -198,20 +100,20 @@ export default function Audit({ auth, logs }) {
                                 return (
                                     <div
                                         key={log.id}
-                                        className="bg-[#161b22] rounded-xl border border-gray-800 px-5 py-4 flex items-center gap-4 hover:border-gray-600 transition"
+                                        className="bg-theme-panel rounded-xl border border-theme-border px-5 py-4 flex items-center gap-4 hover:border-theme-muted transition shadow-sm"
                                     >
                                         <div
-                                            className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0 ${bg}`}
+                                            className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${bg}`}
                                         >
                                             {icon}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-white">
+                                            <p className="text-sm font-medium text-theme-text">
                                                 {log.description}
                                             </p>
-                                            <p className="text-xs text-gray-400 mt-0.5">
+                                            <p className="text-xs text-theme-muted mt-0.5">
                                                 Oleh:{" "}
-                                                <span className="text-gray-300">
+                                                <span className="text-theme-text font-medium">
                                                     {log.user?.name ?? "System"}
                                                 </span>
                                                 <span className="mx-1">·</span>
@@ -219,7 +121,7 @@ export default function Audit({ auth, logs }) {
                                             </p>
                                         </div>
                                         <span
-                                            className={`text-xs px-2 py-1 rounded-full bg-gray-800 ${color} capitalize flex-shrink-0`}
+                                            className={`text-xs px-2 py-0.5 rounded-full border capitalize flex-shrink-0 font-medium ${color}`}
                                         >
                                             {log.type}
                                         </span>
@@ -234,32 +136,32 @@ export default function Audit({ auth, logs }) {
                 {/* Modal Bantuan Halaman Audit */}
                 {showHelpModal && (
                     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                        <div className="bg-[#161b22] rounded-2xl w-full max-w-lg border border-gray-700 max-h-[85vh] flex flex-col">
+                        <div className="bg-theme-panel rounded-2xl w-full max-w-lg border border-theme-border max-h-[85vh] flex flex-col text-theme-text">
                             {/* Header */}
-                            <div className="flex items-center justify-between p-5 border-b border-gray-700">
+                            <div className="flex items-center justify-between p-5 border-b border-theme-border">
                                 <div className="flex items-center gap-3">
-                                    <span className="text-2xl">❓</span>
-                                    <h2 className="text-lg font-bold">
+                                    <HelpCircle className="w-6 h-6 text-theme-accent" />
+                                    <h2 className="text-lg font-bold text-theme-text">
                                         Panduan Audit Trail
                                     </h2>
                                 </div>
                                 <button
                                     onClick={() => setShowHelpModal(false)}
-                                    className="text-gray-400 hover:text-white text-xl"
+                                    className="text-theme-muted hover:text-theme-text text-xl"
                                 >
                                     ✕
                                 </button>
                             </div>
 
                             {/* Isi Panduan - Scrollable */}
-                            <div className="overflow-y-auto p-5 space-y-4">
+                            <div className="overflow-y-auto p-5 space-y-4 text-theme-text">
                                 <div className="flex gap-3">
-                                    <span className="text-xl">📋</span>
+                                    <ClipboardList className="w-5 h-5 text-theme-accent shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="font-semibold text-sm">
+                                        <p className="font-semibold text-sm text-theme-text">
                                             1. Apa itu Audit Trail?
                                         </p>
-                                        <p className="text-gray-400 text-sm mt-1">
+                                        <p className="text-theme-muted text-sm mt-1">
                                             Ini adalah "catatan sejarah"
                                             semua kejadian penting di
                                             sistem — siapa melakukan apa
@@ -271,24 +173,24 @@ export default function Audit({ auth, logs }) {
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">🎨</span>
+                                    <Info className="w-5 h-5 text-theme-accent shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="font-semibold text-sm">
+                                        <p className="font-semibold text-sm text-theme-text">
                                             2. Arti Warna & Ikon
                                         </p>
-                                        <p className="text-gray-400 text-sm mt-1">
-                                            <span className="text-green-400">
-                                                ✅ Hijau
+                                        <p className="text-theme-muted text-sm mt-1">
+                                            <span className="text-green-500 font-semibold">
+                                                Hijau (CheckCircle)
                                             </span>{" "}
                                             = aktivitas transaksi (jual/
                                             batal).{" "}
-                                            <span className="text-blue-400">
-                                                ⚙️ Biru
+                                            <span className="text-blue-500 font-semibold">
+                                                Biru (Settings)
                                             </span>{" "}
                                             = sesi kerja kasir (buka/tutup
                                             shift).{" "}
-                                            <span className="text-yellow-400">
-                                                📦 Kuning
+                                            <span className="text-yellow-500 font-semibold">
+                                                Kuning (Package)
                                             </span>{" "}
                                             = perubahan data produk (tambah/
                                             edit/hapus).
@@ -297,12 +199,12 @@ export default function Audit({ auth, logs }) {
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">🔎</span>
+                                    <Search className="w-5 h-5 text-theme-accent shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="font-semibold text-sm">
+                                        <p className="font-semibold text-sm text-theme-text">
                                             3. Membaca Satu Baris Log
                                         </p>
-                                        <p className="text-gray-400 text-sm mt-1">
+                                        <p className="text-theme-muted text-sm mt-1">
                                             Setiap baris menunjukkan{" "}
                                             <strong>apa</strong> yang
                                             terjadi (deskripsi),{" "}
@@ -315,12 +217,12 @@ export default function Audit({ auth, logs }) {
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">🔄</span>
+                                    <RefreshCw className="w-5 h-5 text-theme-accent shrink-0 mt-0.5 animate-spin-slow" />
                                     <div>
-                                        <p className="font-semibold text-sm">
+                                        <p className="font-semibold text-sm text-theme-text">
                                             4. Update Otomatis
                                         </p>
-                                        <p className="text-gray-400 text-sm mt-1">
+                                        <p className="text-theme-muted text-sm mt-1">
                                             Halaman ini menyegarkan diri
                                             otomatis setiap 5 detik. Kamu
                                             tidak perlu refresh manual
@@ -331,12 +233,12 @@ export default function Audit({ auth, logs }) {
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">💡</span>
+                                    <Lightbulb className="w-5 h-5 text-theme-accent shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="font-semibold text-sm">
+                                        <p className="font-semibold text-sm text-theme-text">
                                             5. Kapan Halaman Ini Dipakai?
                                         </p>
-                                        <p className="text-gray-400 text-sm mt-1">
+                                        <p className="text-theme-muted text-sm mt-1">
                                             Buka halaman ini kalau ada
                                             kejadian aneh — misalnya stok
                                             tiba-tiba berubah atau ada
@@ -349,12 +251,12 @@ export default function Audit({ auth, logs }) {
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <span className="text-xl">📞</span>
+                                    <Phone className="w-5 h-5 text-theme-accent shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="font-semibold text-sm">
+                                        <p className="font-semibold text-sm text-theme-text">
                                             Masih Bingung?
                                         </p>
-                                        <p className="text-gray-400 text-sm mt-1">
+                                        <p className="text-theme-muted text-sm mt-1">
                                             Hubungi developer/admin teknis
                                             kalau ada kendala yang tidak
                                             bisa diatasi sendiri.
@@ -364,10 +266,10 @@ export default function Audit({ auth, logs }) {
                             </div>
 
                             {/* Footer */}
-                            <div className="p-5 border-t border-gray-700">
+                            <div className="p-5 border-t border-theme-border shrink-0">
                                 <button
                                     onClick={() => setShowHelpModal(false)}
-                                    className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg transition"
+                                    className="w-full bg-theme-accent hover:bg-theme-accent-hover text-white font-bold py-3 rounded-lg transition"
                                 >
                                     Mengerti
                                 </button>

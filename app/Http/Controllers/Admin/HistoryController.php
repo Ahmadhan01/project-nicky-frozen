@@ -29,7 +29,11 @@ class HistoryController extends Controller
         }
 
         if ($request->payment_method) {
-            $query->where('payment_method', $request->payment_method);
+            if ($request->payment_method === 'non-tunai') {
+                $query->whereIn('payment_method', ['transfer', 'qris']);
+            } else {
+                $query->where('payment_method', $request->payment_method);
+            }
         }
 
         return Inertia::render('Admin/History', [

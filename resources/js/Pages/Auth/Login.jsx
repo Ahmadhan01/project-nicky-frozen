@@ -1,5 +1,6 @@
 import { Head, useForm } from "@inertiajs/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { User, Lock, Eye, EyeOff, ArrowRight, History, Sun, Moon } from "lucide-react";
 
 export default function Login() {
     const { data, setData, post, processing, errors } = useForm({
@@ -9,6 +10,25 @@ export default function Login() {
     });
 
     const [showPassword, setShowPassword] = useState(false);
+    const [isLight, setIsLight] = useState(false);
+
+    useEffect(() => {
+        setIsLight(document.documentElement.classList.contains("light"));
+    }, []);
+
+    const toggleTheme = () => {
+        if (document.documentElement.classList.contains("light")) {
+            document.documentElement.classList.remove("light");
+            document.documentElement.classList.add("dark");
+            localStorage.setItem("theme", "dark");
+            setIsLight(false);
+        } else {
+            document.documentElement.classList.remove("dark");
+            document.documentElement.classList.add("light");
+            localStorage.setItem("theme", "light");
+            setIsLight(true);
+        }
+    };
 
     const submit = (e) => {
         e.preventDefault();
@@ -18,162 +38,201 @@ export default function Login() {
     return (
         <>
             <Head title="Login - Nicky Frozen" />
-            <div className="min-h-screen bg-[#0d1117] flex items-center justify-center">
-                <div className="bg-[#161b22] rounded-2xl p-10 w-full max-w-md shadow-2xl">
-                    {/* Icon & Title */}
-                    <div className="flex flex-col items-center mb-8">
-                        <img
-                            src="/LOGO_NO_TEXT.png"
-                            alt="Nicky Frozen"
-                            className="h-32 w-auto mb-2 object-contain"
-                        />
-                        <h1
-                            className="text-white text-3xl font-extrabold tracking-wide"
-                            style={{ fontFamily: "'Poppins', sans-serif" }}
-                        >
-                            Welcome Back
-                        </h1>
+            <div className="min-h-screen bg-theme-bg flex text-theme-text font-sans relative">
+                {/* Floating Theme Toggle */}
+                <div className="absolute top-6 right-6 z-50">
+                    <button
+                        onClick={toggleTheme}
+                        className="w-10 h-10 rounded-xl bg-theme-panel border border-theme-border flex items-center justify-center text-theme-muted hover:text-theme-text transition active:scale-95 shadow-md"
+                        title={isLight ? "Mode Gelap" : "Mode Terang"}
+                    >
+                        {isLight ? (
+                            <Moon className="w-5 h-5" />
+                        ) : (
+                            <Sun className="w-5 h-5" />
+                        )}
+                    </button>
+                </div>
+
+                {/* Left Side: Brand Showcase (Hidden on Mobile) */}
+                <div className="hidden lg:flex lg:w-[55%] bg-gradient-to-tr from-slate-950 via-slate-900 to-indigo-950 flex-col justify-between p-16 relative overflow-hidden border-r border-theme-border/20">
+                    {/* Glowing Auras */}
+                    <div className="absolute top-[-20%] left-[-20%] w-[80%] h-[80%] rounded-full bg-cyan-500/10 blur-[120px] pointer-events-none" />
+                    <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-indigo-500/15 blur-[120px] pointer-events-none" />
+
+                    {/* Logo Header */}
+                    <div className="flex items-center gap-3.5 z-10">
+                        <div className="bg-white/5 backdrop-blur-md p-2.5 rounded-2xl border border-white/10 shadow-inner flex items-center justify-center">
+                            <img
+                                src="/niki_fullwhite_v2.png"
+                                alt="Nicky Frozen"
+                                className="h-10 w-10 object-contain"
+                            />
+                        </div>
+                        <div>
+                            <p className="font-extrabold text-lg tracking-wider text-white uppercase leading-none">
+                                Nicky Frozen
+                            </p>
+                            <p className="text-cyan-400 text-xs font-semibold tracking-widest mt-1">
+                                SYSTEMS
+                            </p>
+                        </div>
                     </div>
 
-                    {/* Form */}
-                    <form onSubmit={submit} className="space-y-4">
-                        {/* Email */}
-                        <div className="flex items-center bg-[#0d1117] rounded-lg px-4 py-3 gap-3 border border-transparent">
-                            <svg
-                                className="w-5 h-5 text-gray-400"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                />
-                            </svg>
-                            <input
-                                type="email"
-                                placeholder="Username"
-                                value={data.email}
-                                onChange={(e) =>
-                                    setData("email", e.target.value)
-                                }
-                                className="bg-transparent text-white placeholder-gray-500 outline-none w-full text-sm"
-                                required
-                            />
-                        </div>
-                        {errors.email && (
-                            <p className="text-red-400 text-xs mt-1">
-                                {errors.email}
+                    {/* Interactive Highlights */}
+                    <div className="space-y-8 z-10 my-auto">
+                        <div className="space-y-4">
+                            <span className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-cyan-300 tracking-wide inline-block shadow-sm">
+                                POS & Inventory System
+                            </span>
+                            <h1 className="text-white text-4xl xl:text-5xl font-black leading-tight tracking-tight">
+                                Kelola Transaksi Toko <br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">
+                                    Lebih Cepat & Aman.
+                                </span>
+                            </h1>
+                            <p className="text-slate-400 text-sm max-w-lg leading-relaxed">
+                                Dilengkapi dengan fitur kasir offline, sinkronisasi otomatis, manajemen stok terpadu, dan pelaporan keuangan real-time.
                             </p>
-                        )}
+                        </div>
 
-                        {/* Password */}
-                        {/* Password */}
-                        <div className="flex items-center bg-[#0d1117] rounded-lg px-4 py-3 gap-3 border border-transparent">
-                            <svg
-                                className="w-5 h-5 text-gray-400"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+
+                    </div>
+
+                    {/* Footer branding */}
+                    <div className="text-xs text-slate-500 z-10">
+                        &copy; {new Date().getFullYear()} Nicky Frozen. All rights reserved.
+                    </div>
+                </div>
+
+                {/* Right Side: Login Form */}
+                <div className="w-full lg:w-[45%] flex items-center justify-center p-8 sm:p-12 md:p-16 bg-theme-bg">
+                    <div className="w-full max-w-md space-y-8 animate-slide-up">
+                        {/* Header for Mobile */}
+                        <div className="flex flex-col items-center text-center lg:hidden mb-6">
+                            <div className="bg-theme-panel p-3 rounded-2xl border border-theme-border/60 shadow-md mb-3 flex items-center justify-center">
+                                <img
+                                    src={isLight ? "/niki_fullblack_v2.png" : "/niki_fullwhite_v2.png"}
+                                    alt="Nicky Frozen"
+                                    className="h-12 w-12 object-contain"
                                 />
-                            </svg>
-                            <input
-                                type={showPassword ? "text" : "password"}
-                                placeholder="Password"
-                                value={data.password}
-                                onChange={(e) =>
-                                    setData("password", e.target.value)
-                                }
-                                className="bg-transparent text-white placeholder-gray-500 outline-none w-full text-sm"
-                                required
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="text-gray-400 hover:text-gray-200 shrink-0"
-                                tabIndex={-1}
-                            >
-                                {showPassword ? (
-                                    <svg
-                                        className="w-5 h-5"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m3.181-2.487A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.543 7a9.99 9.99 0 01-4.132 5.411M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                        />
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M3 3l18 18"
-                                        />
-                                    </svg>
-                                ) : (
-                                    <svg
-                                        className="w-5 h-5"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                        />
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                        />
-                                    </svg>
+                            </div>
+                            <h2 className="text-2xl font-black tracking-tight text-theme-text">
+                                Nicky Frozen
+                            </h2>
+                            <p className="text-xs text-theme-muted mt-1 uppercase tracking-widest font-bold">
+                                POS SYSTEMS
+                            </p>
+                        </div>
+
+                        {/* Title Section */}
+                        <div className="space-y-2 text-center lg:text-left">
+                            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-theme-text">
+                                Welcome Back
+                            </h2>
+                            <p className="text-sm text-theme-muted">
+                                Masukkan detail akun untuk mengakses dashboard kasir.
+                            </p>
+                        </div>
+
+                        {/* Form */}
+                        <form onSubmit={submit} className="space-y-5">
+                            {/* Email / Username */}
+                            <div className="space-y-2">
+                                <label className="text-xs font-semibold text-theme-muted uppercase tracking-wider block">
+                                    Email Address
+                                </label>
+                                <div className="flex items-center bg-theme-panel rounded-xl px-4 py-3.5 gap-3 border border-theme-border focus-within:border-theme-accent transition">
+                                    <User className="w-5 h-5 text-theme-muted shrink-0" />
+                                    <input
+                                        type="email"
+                                        placeholder="nama@email.com"
+                                        value={data.email}
+                                        onChange={(e) =>
+                                            setData("email", e.target.value)
+                                        }
+                                        className="bg-transparent text-theme-text placeholder-theme-muted outline-none w-full text-sm font-medium"
+                                        required
+                                    />
+                                </div>
+                                {errors.email && (
+                                    <p className="text-red-500 text-xs font-medium mt-1">
+                                        {errors.email}
+                                    </p>
                                 )}
+                            </div>
+
+                            {/* Password */}
+                            <div className="space-y-2">
+                                <label className="text-xs font-semibold text-theme-muted uppercase tracking-wider block">
+                                    Password
+                                </label>
+                                <div className="flex items-center bg-theme-panel rounded-xl px-4 py-3.5 gap-3 border border-theme-border focus-within:border-theme-accent transition">
+                                    <Lock className="w-5 h-5 text-theme-muted shrink-0" />
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="••••••••"
+                                        value={data.password}
+                                        onChange={(e) =>
+                                            setData("password", e.target.value)
+                                        }
+                                        className="bg-transparent text-theme-text placeholder-theme-muted outline-none w-full text-sm font-medium"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="text-theme-muted hover:text-theme-text shrink-0 transition"
+                                        tabIndex={-1}
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="w-5 h-5" />
+                                        ) : (
+                                            <Eye className="w-5 h-5" />
+                                        )}
+                                    </button>
+                                </div>
+                                {errors.password && (
+                                    <p className="text-red-500 text-xs font-medium mt-1">
+                                        {errors.password}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Remember me (Optional but integrated nicely) */}
+                            <div className="flex items-center justify-between text-xs font-medium">
+                                <label className="flex items-center gap-2 cursor-pointer text-theme-muted hover:text-theme-text transition">
+                                    <input
+                                        type="checkbox"
+                                        checked={data.remember}
+                                        onChange={(e) =>
+                                            setData("remember", e.target.checked)
+                                        }
+                                        className="rounded border-theme-border bg-theme-panel text-theme-accent focus:ring-theme-accent w-4 h-4"
+                                    />
+                                    <span>Ingat Sesi Saya</span>
+                                </label>
+                            </div>
+
+                            {/* Submit Button */}
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="w-full bg-theme-accent hover:bg-theme-accent-hover active:scale-[0.98] hover:-translate-y-0.5 active:translate-y-0 text-white font-bold py-3.5 rounded-xl transition-all duration-200 mt-2 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-theme-accent/20 cursor-pointer"
+                            >
+                                {processing ? "Memproses..." : "Masuk ke Akun"}
+                                <ArrowRight className="w-4 h-4 text-white" />
                             </button>
+                        </form>
+
+                        {/* Catatan Bantuan */}
+                        <div className="mt-8 pt-6 border-t border-theme-border text-center">
+                            <p className="text-theme-muted text-xs leading-relaxed max-w-sm mx-auto">
+                                Gunakan kredensial resmi yang telah didaftarkan.
+                                <br />
+                                Mengalami kendala login? Hubungi administrator atau pengelola cabang.
+                            </p>
                         </div>
-                        {errors.password && (
-                            <p className="text-red-400 text-xs mt-1">
-                                {errors.password}
-                            </p>
-                        )}
-                        {errors.password && (
-                            <p className="text-red-400 text-xs mt-1">
-                                {errors.password}
-                            </p>
-                        )}
-
-                        {/* Button */}
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="w-full bg-cyan-400 hover:bg-cyan-500 text-white font-semibold py-3 rounded-lg transition duration-200 mt-2 disabled:opacity-50"
-                        >
-                            {processing ? "Loading..." : "Login"}
-                        </button>
-                    </form>
-
-                    {/* Catatan Bantuan */}
-                    <div className="mt-6 pt-5 border-t border-gray-700 text-center">
-                        <p className="text-gray-500 text-xs leading-relaxed">
-                            Gunakan username & password yang diberikan oleh
-                            admin/pemilik toko.
-                            <br />
-                            Lupa password atau tidak bisa login? Hubungi admin,
-                            jangan coba-coba login sembarangan.
-                        </p>
                     </div>
                 </div>
             </div>
