@@ -1,17 +1,17 @@
 import { Head, router, usePage } from "@inertiajs/react";
 import { useState, useEffect, useCallback } from "react";
 import KasirNavbar from "@/Components/KasirNavbar";
-import { 
-    AlertTriangle, 
-    WifiOff, 
-    RefreshCw, 
-    CheckCircle2, 
-    Settings, 
-    Store, 
-    Sun, 
-    Moon, 
-    FileText, 
-    Package, 
+import {
+    AlertTriangle,
+    WifiOff,
+    RefreshCw,
+    CheckCircle2,
+    Settings,
+    Store,
+    Sun,
+    Moon,
+    FileText,
+    Package,
     Printer,
     HelpCircle,
     Lock,
@@ -21,7 +21,7 @@ import {
     LogOut,
     Phone,
     Wifi,
-    Search
+    Search,
 } from "lucide-react";
 
 export default function Dashboard({
@@ -50,6 +50,7 @@ export default function Dashboard({
     const [showOfflineToast, setShowOfflineToast] = useState(false);
     const [alertModal, setAlertModal] = useState(null);
     const [showHelpModal, setShowHelpModal] = useState(false);
+    const [showMobileCart, setShowMobileCart] = useState(false);
 
     // Tampilkan struk otomatis setelah transaksi berhasil
     useEffect(() => {
@@ -261,8 +262,6 @@ export default function Dashboard({
         );
     };
 
-
-
     // Proses transaksi
     const processTransaction = () => {
         if (cart.length === 0) return;
@@ -302,6 +301,7 @@ export default function Dashboard({
             setOfflineQueue(updatedQueue);
             setCart([]);
             setPaidAmount("");
+            setShowMobileCart(false);
             setAlertModal({
                 type: "alert",
                 message: `Transaksi disimpan offline! Total tersimpan: ${updatedQueue.length} transaksi.`,
@@ -325,6 +325,7 @@ export default function Dashboard({
                 onSuccess: () => {
                     setCart([]);
                     setPaidAmount("");
+                    setShowMobileCart(false);
                     fetch(route("kasir.transaction.last"), {
                         method: "GET",
                         headers: {
@@ -441,7 +442,7 @@ export default function Dashboard({
         return (
             <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[999] p-4 animate-fade-in">
                 <div className="bg-theme-panel rounded-2xl w-full max-w-sm border border-theme-border shadow-2xl overflow-hidden flex flex-col items-center animate-modal-pop">
-                    <div className="p-6 flex flex-col items-center text-center">
+                    <div className="p-5 sm:p-6 flex flex-col items-center text-center">
                         <div
                             className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 ${
                                 alertModal.type === "confirm"
@@ -489,19 +490,226 @@ export default function Dashboard({
 
     const FlashToast = ({ message }) => {
         return (
-            <div className="fixed bottom-6 right-6 bg-green-600 text-white px-5 py-3 rounded-xl shadow-lg z-50 flex items-center gap-2 animate-toast-in">
-                <CheckCircle2 className="w-5 h-5 text-white" /> {message}
+            <div className="fixed bottom-4 right-4 left-4 sm:left-auto sm:bottom-6 sm:right-6 bg-green-600 text-white px-5 py-3 rounded-xl shadow-lg z-50 flex items-center gap-2 animate-toast-in">
+                <CheckCircle2 className="w-5 h-5 text-white shrink-0" />{" "}
+                {message}
             </div>
         );
     };
+
+    // Konten keranjang (dipakai bersama oleh sidebar desktop & bottom sheet mobile)
+    const cartContent = (
+        <>
+            <div className="p-4 border-b border-theme-border flex items-center justify-between">
+                <div className="flex items-center gap-2 text-theme-text">
+                    <span className="font-bold">Keranjang Belanja</span>
+                    {cart.length > 0 && (
+                        <span className="bg-theme-accent text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                            {cart.length}
+                        </span>
+                    )}
+                </div>
+                {cart.length > 0 && (
+                    <button
+                        onClick={() => setCart([])}
+                        className="text-red-500 text-xs hover:underline"
+                    >
+                        Hapus Semua
+                    </button>
+                )}
+            </div>
+
+            {/* Items */}
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
+                {cart.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-theme-muted py-8 lg:py-0">
+                        <span className="text-4xl mb-2">🛒</span>
+                        <p className="text-sm">Belum ada item</p>
+                    </div>
+                ) : (
+                    cart.map((item) => (
+                        <div
+                            key={item.id}
+                            className="animate-slide-up flex flex-col gap-2 pb-3 border-b border-theme-border/60 last:border-0 last:pb-0"
+                        >
+                            {/* Baris atas: ikon, nama, harga satuan, hapus */}
+                            <div className="flex items-center gap-2">
+                                <div className="bg-theme-bg p-2 rounded-lg shrink-0">
+                                    <span className="text-lg">🍱</span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-semibold truncate text-theme-text">
+                                        {item.name}
+                                    </p>
+                                    <p className="text-xs text-theme-muted">
+                                        {formatRp(item.price)}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => removeItem(item.id)}
+                                    className="text-red-500 hover:text-red-400 text-sm shrink-0"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+
+                            {/* Baris bawah: kontrol qty & subtotal */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => updateQty(item.id, -1)}
+                                        className="w-8 h-8 bg-theme-bg rounded text-base hover:bg-theme-border flex items-center justify-center text-theme-text"
+                                    >
+                                        -
+                                    </button>
+                                    <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        value={
+                                            item.qtyInput !== undefined
+                                                ? item.qtyInput
+                                                : item.qty
+                                        }
+                                        onChange={(e) =>
+                                            setQtyDirect(
+                                                item.id,
+                                                e.target.value.replace(
+                                                    /\D/g,
+                                                    "",
+                                                ),
+                                            )
+                                        }
+                                        onKeyDown={(e) => {
+                                            const allowedKeys = [
+                                                "Backspace",
+                                                "Delete",
+                                                "ArrowLeft",
+                                                "ArrowRight",
+                                                "Tab",
+                                                "Enter",
+                                            ];
+                                            if (
+                                                !/^[0-9]$/.test(e.key) &&
+                                                !allowedKeys.includes(e.key)
+                                            ) {
+                                                e.preventDefault();
+                                            }
+                                            if (e.key === "Enter")
+                                                e.target.blur();
+                                        }}
+                                        onBlur={() => commitQtyInput(item.id)}
+                                        onFocus={(e) => e.target.select()}
+                                        className="w-12 h-8 bg-theme-bg border border-theme-border rounded text-sm text-center text-theme-text outline-none focus:border-theme-accent"
+                                    />
+                                    <button
+                                        onClick={() => updateQty(item.id, 1)}
+                                        className="w-8 h-8 bg-theme-bg rounded text-base hover:bg-theme-border flex items-center justify-center text-theme-text"
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                                <span className="text-xs text-theme-text min-w-fit">
+                                    {formatRp(item.price * item.qty)}
+                                </span>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            {/* Footer Keranjang */}
+            <div className="p-4 border-t border-theme-border space-y-3">
+                <div className="flex justify-between text-sm text-theme-muted">
+                    <span>Subtotal ({cart.length} item)</span>
+                    <span>{formatRp(subtotal)}</span>
+                </div>
+                <div className="flex justify-between font-bold text-lg text-theme-text">
+                    <span>Total</span>
+                    <span>{formatRp(subtotal)}</span>
+                </div>
+
+                {/* Metode Pembayaran */}
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setPaymentMethod("cash")}
+                        className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 active:scale-95 ${
+                            paymentMethod === "cash"
+                                ? "bg-theme-accent text-white shadow-sm"
+                                : "bg-theme-bg text-theme-muted border border-theme-border hover:text-theme-text"
+                        }`}
+                    >
+                        💵 Cash
+                    </button>
+                    <button
+                        onClick={() => setPaymentMethod("transfer")}
+                        className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 active:scale-95 ${
+                            paymentMethod === "transfer"
+                                ? "bg-theme-accent text-white shadow-sm"
+                                : "bg-theme-bg text-theme-muted border border-theme-border hover:text-theme-text"
+                        }`}
+                    >
+                        💳 Non-Tunai
+                    </button>
+                </div>
+
+                {/* Uang Pembayaran — hanya tampil kalau Cash */}
+                {paymentMethod === "cash" && (
+                    <>
+                        <input
+                            type="text"
+                            placeholder="Rp 0"
+                            value={paidAmount}
+                            onChange={(e) => {
+                                const digitsOnly = e.target.value.replace(
+                                    /\D/g,
+                                    "",
+                                );
+                                setPaidAmount(
+                                    digitsOnly
+                                        ? Number(digitsOnly).toLocaleString(
+                                              "id-ID",
+                                          )
+                                        : "",
+                                );
+                            }}
+                            inputMode="numeric"
+                            className="w-full bg-theme-input-bg border border-theme-input-border rounded-lg px-3 py-2 text-sm outline-none focus:border-theme-accent text-theme-text"
+                        />
+                        <div className="flex justify-between text-sm text-theme-muted">
+                            <span>Kembalian</span>
+                            <span
+                                className={
+                                    change < 0
+                                        ? "text-red-500 font-semibold"
+                                        : "text-theme-text font-semibold"
+                                }
+                            >
+                                {formatRp(Math.max(0, change))}
+                            </span>
+                        </div>
+                    </>
+                )}
+
+                {/* Tombol Proses */}
+                <button
+                    onClick={processTransaction}
+                    disabled={cart.length === 0}
+                    className="w-full bg-green-600 hover:bg-green-500 active:scale-[0.98] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none disabled:active:scale-100 text-white font-bold py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow"
+                >
+                    📷 Proses Transaksi
+                </button>
+            </div>
+        </>
+    );
 
     return (
         <>
             <Head title="Kasir - Nicky Frozen" />
             {/* Banner Offline */}
             {!isOnline && (
-                <div className="bg-yellow-900/80 border-b border-yellow-700 px-6 py-3 flex items-center gap-3 text-yellow-300 text-sm">
-                    <WifiOff className="w-4 h-4 text-yellow-400 shrink-0" />
+                <div className="bg-yellow-900/80 border-b border-yellow-700 px-4 sm:px-6 py-3 flex flex-wrap items-start sm:items-center gap-3 text-yellow-300 text-sm">
+                    <WifiOff className="w-4 h-4 text-yellow-400 shrink-0 mt-0.5 sm:mt-0" />
                     <span>
                         <strong>Mode Offline Aktif.</strong>{" "}
                         {offlineQueue.length} transaksi tersimpan lokal — data
@@ -512,8 +720,8 @@ export default function Dashboard({
 
             {/* Banner Stok Menipis */}
             {lowStockProducts.length > 0 && (
-                <div className="bg-orange-900/80 border-b border-orange-700 px-6 py-2 flex items-center gap-3 text-orange-300 text-sm">
-                    <AlertTriangle className="w-4 h-4 text-orange-400 shrink-0" />
+                <div className="bg-orange-900/80 border-b border-orange-700 px-4 sm:px-6 py-2 flex flex-wrap items-start sm:items-center gap-3 text-orange-300 text-sm">
+                    <AlertTriangle className="w-4 h-4 text-orange-400 shrink-0 mt-0.5 sm:mt-0" />
                     <span>
                         <strong>Stok Menipis!</strong>{" "}
                         {lowStockProducts
@@ -525,8 +733,8 @@ export default function Dashboard({
 
             {/* Banner Syncing */}
             {isSyncing && (
-                <div className="bg-blue-900/80 border-b border-blue-700 px-6 py-3 flex items-center gap-3 text-blue-300 text-sm">
-                    <RefreshCw className="w-4 h-4 text-blue-400 animate-spin shrink-0" />
+                <div className="bg-blue-900/80 border-b border-blue-700 px-4 sm:px-6 py-3 flex flex-wrap items-start sm:items-center gap-3 text-blue-300 text-sm">
+                    <RefreshCw className="w-4 h-4 text-blue-400 animate-spin shrink-0 mt-0.5 sm:mt-0" />
                     <span>
                         <strong>
                             Menyinkronkan {offlineQueue.length} transaksi...
@@ -538,7 +746,7 @@ export default function Dashboard({
 
             {/* Toast Offline */}
             {showOfflineToast && (
-                <div className="fixed bottom-6 right-6 bg-theme-panel border border-yellow-700/50 text-theme-text px-5 py-4 rounded-xl shadow-lg z-50 flex items-start gap-3 max-w-sm">
+                <div className="fixed bottom-4 right-4 left-4 sm:left-auto sm:bottom-6 sm:right-6 bg-theme-panel border border-yellow-700/50 text-theme-text px-5 py-4 rounded-xl shadow-lg z-50 flex items-start gap-3 max-w-sm sm:max-w-sm">
                     <WifiOff className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
                     <div>
                         <p className="font-semibold text-sm">Mode Offline</p>
@@ -556,65 +764,75 @@ export default function Dashboard({
                 </div>
             )}
             {flash?.success && <FlashToast message={flash.success} />}
-            <div className="h-screen bg-theme-bg text-theme-text flex flex-col overflow-hidden">
+            <div className="min-h-screen lg:h-screen bg-theme-bg text-theme-text flex flex-col lg:overflow-hidden">
                 {/* Navbar */}
-                <KasirNavbar activeTab="kasir" isOnline={isOnline} onHelpClick={() => setShowHelpModal(true)} />
+                <KasirNavbar
+                    activeTab="kasir"
+                    isOnline={isOnline}
+                    onHelpClick={() => setShowHelpModal(true)}
+                />
 
                 {/* Info Sesi */}
                 {activeSession && (
                     <div className="bg-theme-panel border-b border-theme-border shrink-0">
-                        <div className="max-w-[1440px] mx-auto px-6 py-2 flex items-center gap-6 text-xs text-theme-muted">
-                            <span>
-                            🏪 Kios:{" "}
-                            <strong className="text-theme-text">
-                                {activeSession.kios?.name}
-                            </strong>
-                        </span>
-                        <span>
-                            🕐 Shift:{" "}
-                            <strong className="text-theme-text">
-                                {activeSession.shift?.name}
-                            </strong>
-                        </span>
-                        <span>
-                            👤 User:{" "}
-                            <strong className="text-theme-text">
-                                {auth.user.name}
-                            </strong>
-                        </span>
-                        <span>
-                            📅{" "}
-                            <strong className="text-theme-text">
-                                {new Date().toLocaleDateString("id-ID", {
-                                    weekday: "long",
-                                    day: "numeric",
-                                    month: "long",
-                                    year: "numeric",
-                                })}
-                            </strong>
-                        </span>
-                        <div className="ml-auto flex items-center gap-4">
-                            <button
-                                onClick={() => setShowHelpModal(true)}
-                                className="bg-theme-panel hover:bg-theme-border border border-theme-border text-theme-text font-semibold px-3 py-1 rounded-lg flex items-center gap-1.5 transition text-xs shadow-sm"
-                            >
-                                <HelpCircle className="w-3.5 h-3.5 text-theme-muted" /> Panduan
-                            </button>
-                            <button
-                                onClick={() => setShowSessionModal(true)}
-                                className="text-theme-accent hover:underline text-xs"
-                            >
-                                Ganti Sesi
-                            </button>
-                        </div>
+                        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-2 lg:flex lg:items-center lg:gap-6 text-xs text-theme-muted">
+                            <div className="flex flex-nowrap lg:flex-wrap items-center gap-2 lg:gap-6 overflow-x-auto lg:overflow-visible -mx-4 px-4 lg:mx-0 lg:px-0 pb-2 lg:pb-0 scrollbar-hide">
+                                <span className="shrink-0 inline-flex items-center gap-1 bg-theme-bg border border-theme-border rounded-full px-3 py-1 lg:bg-transparent lg:border-0 lg:rounded-none lg:px-0 lg:py-0">
+                                    🏪{" "}
+                                    <strong className="text-theme-text">
+                                        {activeSession.kios?.name}
+                                    </strong>
+                                </span>
+                                <span className="shrink-0 inline-flex items-center gap-1 bg-theme-bg border border-theme-border rounded-full px-3 py-1 lg:bg-transparent lg:border-0 lg:rounded-none lg:px-0 lg:py-0">
+                                    🕐{" "}
+                                    <strong className="text-theme-text">
+                                        {activeSession.shift?.name}
+                                    </strong>
+                                </span>
+                                <span className="shrink-0 inline-flex items-center gap-1 bg-theme-bg border border-theme-border rounded-full px-3 py-1 lg:bg-transparent lg:border-0 lg:rounded-none lg:px-0 lg:py-0">
+                                    👤{" "}
+                                    <strong className="text-theme-text">
+                                        {auth.user.name}
+                                    </strong>
+                                </span>
+                                <span className="shrink-0 hidden sm:inline-flex lg:inline-flex items-center gap-1 bg-theme-bg border border-theme-border rounded-full px-3 py-1 lg:bg-transparent lg:border-0 lg:rounded-none lg:px-0 lg:py-0">
+                                    📅{" "}
+                                    <strong className="text-theme-text">
+                                        {new Date().toLocaleDateString(
+                                            "id-ID",
+                                            {
+                                                weekday: "long",
+                                                day: "numeric",
+                                                month: "long",
+                                                year: "numeric",
+                                            },
+                                        )}
+                                    </strong>
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-3 lg:gap-4 lg:ml-auto">
+                                <button
+                                    onClick={() => setShowHelpModal(true)}
+                                    className="flex-1 lg:flex-none justify-center bg-theme-panel hover:bg-theme-border border border-theme-border text-theme-text font-semibold px-3 py-1.5 lg:py-1 rounded-lg flex items-center gap-1.5 transition text-xs shadow-sm whitespace-nowrap"
+                                >
+                                    <HelpCircle className="w-3.5 h-3.5 text-theme-muted" />{" "}
+                                    Panduan
+                                </button>
+                                <button
+                                    onClick={() => setShowSessionModal(true)}
+                                    className="flex-1 lg:flex-none text-center lg:text-left bg-theme-bg lg:bg-transparent border border-theme-border lg:border-0 rounded-lg lg:rounded-none px-3 py-1.5 lg:p-0 text-theme-accent hover:underline text-xs whitespace-nowrap"
+                                >
+                                    Ganti Sesi
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
 
                 {/* Main Content */}
-                <div className="flex-1 w-full max-w-[1440px] mx-auto flex overflow-hidden">
+                <div className="flex-1 w-full max-w-[1440px] mx-auto flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden">
                     {/* Kiri: Produk */}
-                    <div className="flex-1 flex flex-col p-4 overflow-hidden">
+                    <div className="flex-1 flex flex-col p-4 overflow-visible lg:overflow-hidden">
                         {/* Search */}
                         <div className="flex items-center bg-theme-panel rounded-lg px-4 py-2 mb-4 gap-2 border border-theme-border">
                             <span className="text-theme-muted">🔍</span>
@@ -628,12 +846,12 @@ export default function Dashboard({
                         </div>
 
                         {/* Filter Kategori */}
-                        <div className="flex gap-2 mb-2.5 flex-wrap">
+                        <div className="flex gap-2 mb-2.5 flex-nowrap lg:flex-wrap overflow-x-auto lg:overflow-visible -mx-4 px-4 lg:mx-0 lg:px-0 pb-1 lg:pb-0 scrollbar-hide">
                             {categories.map((cat) => (
                                 <button
                                     key={cat}
                                     onClick={() => setActiveCategory(cat)}
-                                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${
+                                    className={`shrink-0 whitespace-nowrap px-4 py-1.5 rounded-lg text-sm font-medium transition ${
                                         activeCategory === cat
                                             ? "bg-theme-accent text-white"
                                             : "bg-theme-panel text-theme-muted hover:text-theme-text border border-theme-border"
@@ -645,7 +863,7 @@ export default function Dashboard({
                         </div>
 
                         {/* Grid Produk */}
-                        <div className="flex-1 overflow-y-auto px-2 pt-1.5 pb-2">
+                        <div className="flex-1 overflow-visible lg:overflow-y-auto px-2 pt-1.5 pb-2">
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                                 {filteredProducts.map((product, index) => {
                                     const inCart = cart.find(
@@ -662,7 +880,9 @@ export default function Dashboard({
                                             }
                                             className={`animate-slide-up hover-scale-card bg-theme-panel rounded-xl p-3 border relative cursor-pointer active:scale-[0.98]
                                             ${habis ? "opacity-50 cursor-not-allowed border-theme-border" : "border-theme-border"}`}
-                                            style={{ animationDelay: `${(index % 15) * 30}ms` }}
+                                            style={{
+                                                animationDelay: `${(index % 15) * 30}ms`,
+                                            }}
                                         >
                                             {inCart && (
                                                 <span className="absolute top-2 right-2 bg-theme-accent text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
@@ -702,237 +922,16 @@ export default function Dashboard({
                         </div>
                     </div>
 
-                    {/* Kanan: Keranjang */}
-                    <div className="w-80 bg-theme-panel border-l border-theme-border flex flex-col">
-                        <div className="p-4 border-b border-theme-border flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-theme-text">
-                                <span className="font-bold">
-                                    Keranjang Belanja
-                                </span>
-                                {cart.length > 0 && (
-                                    <span className="bg-theme-accent text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                                        {cart.length}
-                                    </span>
-                                )}
-                            </div>
-                            {cart.length > 0 && (
-                                <button
-                                    onClick={() => setCart([])}
-                                    className="text-red-500 text-xs hover:underline"
-                                >
-                                    Hapus Semua
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Items */}
-                        <div className="flex-1 overflow-auto p-4 space-y-3">
-                            {cart.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-full text-theme-muted">
-                                    <span className="text-4xl mb-2">🛒</span>
-                                    <p className="text-sm">Belum ada item</p>
-                                </div>
-                            ) : (
-                                cart.map((item) => (
-                                    <div
-                                        key={item.id}
-                                        className="animate-slide-up flex flex-col gap-2 pb-3 border-b border-theme-border/60 last:border-0 last:pb-0"
-                                    >
-                                        {/* Baris atas: ikon, nama, harga satuan, hapus */}
-                                        <div className="flex items-center gap-2">
-                                            <div className="bg-theme-bg p-2 rounded-lg shrink-0">
-                                                <span className="text-lg">
-                                                    🍱
-                                                </span>
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-xs font-semibold truncate text-theme-text">
-                                                    {item.name}
-                                                </p>
-                                                <p className="text-xs text-theme-muted">
-                                                    {formatRp(item.price)}
-                                                </p>
-                                            </div>
-                                            <button
-                                                onClick={() =>
-                                                    removeItem(item.id)
-                                                }
-                                                className="text-red-500 hover:text-red-400 text-sm shrink-0"
-                                            >
-                                                ✕
-                                            </button>
-                                        </div>
-
-                                        {/* Baris bawah: kontrol qty & subtotal */}
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-1">
-                                                <button
-                                                    onClick={() =>
-                                                        updateQty(item.id, -1)
-                                                    }
-                                                    className="w-8 h-8 bg-theme-bg rounded text-base hover:bg-theme-border flex items-center justify-center text-theme-text"
-                                                >
-                                                    -
-                                                </button>
-                                                <input
-                                                    type="text"
-                                                    inputMode="numeric"
-                                                    pattern="[0-9]*"
-                                                    value={
-                                                        item.qtyInput !==
-                                                        undefined
-                                                            ? item.qtyInput
-                                                            : item.qty
-                                                    }
-                                                    onChange={(e) =>
-                                                        setQtyDirect(
-                                                            item.id,
-                                                            e.target.value.replace(
-                                                                /\D/g,
-                                                                "",
-                                                            ),
-                                                        )
-                                                    }
-                                                    onKeyDown={(e) => {
-                                                        const allowedKeys = [
-                                                            "Backspace",
-                                                            "Delete",
-                                                            "ArrowLeft",
-                                                            "ArrowRight",
-                                                            "Tab",
-                                                            "Enter",
-                                                        ];
-                                                        if (
-                                                            !/^[0-9]$/.test(
-                                                                e.key,
-                                                            ) &&
-                                                            !allowedKeys.includes(
-                                                                e.key,
-                                                            )
-                                                        ) {
-                                                            e.preventDefault();
-                                                        }
-                                                        if (e.key === "Enter")
-                                                            e.target.blur();
-                                                    }}
-                                                    onBlur={() =>
-                                                        commitQtyInput(item.id)
-                                                    }
-                                                    onFocus={(e) =>
-                                                        e.target.select()
-                                                    }
-                                                    className="w-12 h-8 bg-theme-bg border border-theme-border rounded text-sm text-center text-theme-text outline-none focus:border-theme-accent"
-                                                />
-                                                <button
-                                                    onClick={() =>
-                                                        updateQty(item.id, 1)
-                                                    }
-                                                    className="w-8 h-8 bg-theme-bg rounded text-base hover:bg-theme-border flex items-center justify-center text-theme-text"
-                                                >
-                                                    +
-                                                </button>
-                                            </div>
-                                            <span className="text-xs text-theme-text min-w-fit">
-                                                {formatRp(
-                                                    item.price * item.qty,
-                                                )}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-
-                        {/* Footer Keranjang */}
-                        <div className="p-4 border-t border-theme-border space-y-3">
-                            <div className="flex justify-between text-sm text-theme-muted">
-                                <span>Subtotal ({cart.length} item)</span>
-                                <span>{formatRp(subtotal)}</span>
-                            </div>
-                            <div className="flex justify-between font-bold text-lg text-theme-text">
-                                <span>Total</span>
-                                <span>{formatRp(subtotal)}</span>
-                            </div>
-
-                            {/* Metode Pembayaran */}
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setPaymentMethod("cash")}
-                                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 active:scale-95 ${
-                                        paymentMethod === "cash"
-                                            ? "bg-theme-accent text-white shadow-sm"
-                                            : "bg-theme-bg text-theme-muted border border-theme-border hover:text-theme-text"
-                                    }`}
-                                >
-                                    💵 Cash
-                                </button>
-                                <button
-                                    onClick={() => setPaymentMethod("transfer")}
-                                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 active:scale-95 ${
-                                        paymentMethod === "transfer"
-                                            ? "bg-theme-accent text-white shadow-sm"
-                                            : "bg-theme-bg text-theme-muted border border-theme-border hover:text-theme-text"
-                                    }`}
-                                >
-                                    💳 Non-Tunai
-                                </button>
-                            </div>
-
-                            {/* Uang Pembayaran — hanya tampil kalau Cash */}
-                            {paymentMethod === "cash" && (
-                                <>
-                                    <input
-                                        type="text"
-                                        placeholder="Rp 0"
-                                        value={paidAmount}
-                                        onChange={(e) => {
-                                            const digitsOnly =
-                                                e.target.value.replace(
-                                                    /\D/g,
-                                                    "",
-                                                );
-                                            setPaidAmount(
-                                                digitsOnly
-                                                    ? Number(
-                                                          digitsOnly,
-                                                      ).toLocaleString("id-ID")
-                                                    : "",
-                                            );
-                                        }}
-                                        inputMode="numeric"
-                                        className="w-full bg-theme-input-bg border border-theme-input-border rounded-lg px-3 py-2 text-sm outline-none focus:border-theme-accent text-theme-text"
-                                    />
-                                    <div className="flex justify-between text-sm text-theme-muted">
-                                        <span>Kembalian</span>
-                                        <span
-                                            className={
-                                                change < 0
-                                                    ? "text-red-500 font-semibold"
-                                                    : "text-theme-text font-semibold"
-                                            }
-                                        >
-                                            {formatRp(Math.max(0, change))}
-                                        </span>
-                                    </div>
-                                </>
-                            )}
-
-                            {/* Tombol Proses */}
-                            <button
-                                onClick={processTransaction}
-                                disabled={cart.length === 0}
-                                className="w-full bg-green-600 hover:bg-green-500 active:scale-[0.98] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none disabled:active:scale-100 text-white font-bold py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow"
-                            >
-                                📷 Proses Transaksi
-                            </button>
-                        </div>
+                    {/* Kanan: Keranjang (desktop only, di mobile jadi bottom sheet) */}
+                    <div className="hidden lg:flex lg:w-80 bg-theme-panel lg:border-l border-theme-border flex-col">
+                        {cartContent}
                     </div>
                 </div>
                 {showHelpModal && (
                     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fade-in">
                         <div className="bg-theme-panel rounded-2xl w-full max-w-lg border border-theme-border max-h-[85vh] flex flex-col text-theme-text shadow-2xl animate-modal-pop">
                             {/* Header */}
-                            <div className="flex items-center justify-between p-5 border-b border-theme-border shrink-0">
+                            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-theme-border shrink-0">
                                 <div className="flex items-center gap-3">
                                     <HelpCircle className="w-6 h-6 text-theme-accent" />
                                     <h2 className="text-lg font-bold text-theme-text">
@@ -948,7 +947,7 @@ export default function Dashboard({
                             </div>
 
                             {/* Isi Panduan - Scrollable */}
-                            <div className="overflow-y-auto p-5 space-y-4">
+                            <div className="overflow-y-auto p-4 sm:p-5 space-y-4">
                                 <div className="flex gap-3">
                                     <Lock className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
                                     <div>
@@ -1087,9 +1086,9 @@ export default function Dashboard({
                                         </p>
                                         <p className="text-gray-400 text-sm mt-1">
                                             Tekan tombol{" "}
-                                            <strong>"Riwayat"</strong> di
-                                            pojok kiri atas untuk melihat daftar
-                                            semua transaksi yang sudah dibuat.
+                                            <strong>"Riwayat"</strong> di pojok
+                                            kiri atas untuk melihat daftar semua
+                                            transaksi yang sudah dibuat.
                                         </p>
                                     </div>
                                 </div>
@@ -1132,8 +1131,9 @@ export default function Dashboard({
                                             otomatis dikembalikan.
                                             <br />
                                             <span className="text-yellow-400 flex items-center gap-1 mt-1">
-                                                <AlertTriangle className="w-3.5 h-3.5" /> Hati-hati, transaksi yang
-                                                sudah dibatalkan tidak bisa
+                                                <AlertTriangle className="w-3.5 h-3.5" />{" "}
+                                                Hati-hati, transaksi yang sudah
+                                                dibatalkan tidak bisa
                                                 dikembalikan lagi!
                                             </span>
                                         </p>
@@ -1194,7 +1194,7 @@ export default function Dashboard({
                             </div>
 
                             {/* Footer */}
-                            <div className="p-5 border-t border-theme-border shrink-0">
+                            <div className="p-4 sm:p-5 border-t border-theme-border shrink-0">
                                 <button
                                     onClick={() => setShowHelpModal(false)}
                                     className="w-full bg-theme-accent hover:bg-theme-accent-hover text-white font-bold py-3 rounded-lg transition"
@@ -1208,8 +1208,8 @@ export default function Dashboard({
 
                 {/* Modal Setup Sesi */}
                 {showSessionModal && (
-                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 animate-fade-in">
-                        <div className="bg-theme-panel rounded-2xl p-6 w-full max-w-md border border-theme-border text-theme-text shadow-2xl animate-modal-pop">
+                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fade-in">
+                        <div className="bg-theme-panel rounded-2xl p-4 sm:p-6 w-full max-w-md border border-theme-border text-theme-text shadow-2xl animate-modal-pop max-h-[90vh] overflow-y-auto">
                             <div className="flex items-center gap-3 mb-2">
                                 <Settings className="w-5 h-5 text-theme-accent" />
                                 <h2 className="text-lg font-bold text-theme-text">
@@ -1309,7 +1309,7 @@ export default function Dashboard({
                     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fade-in">
                         <div className="bg-theme-panel rounded-2xl w-full max-w-lg border border-theme-border shadow-2xl flex flex-col max-h-[90vh] text-theme-text animate-modal-pop">
                             {/* Header Modal */}
-                            <div className="flex items-center justify-between px-6 py-4 border-b border-theme-border">
+                            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-theme-border">
                                 <div className="flex items-center gap-2">
                                     <FileText className="w-5 h-5 text-theme-accent" />
                                     <span className="font-bold">
@@ -1325,7 +1325,7 @@ export default function Dashboard({
                             </div>
 
                             {/* Isi Struk */}
-                            <div className="p-6 overflow-auto flex-1">
+                            <div className="p-4 sm:p-6 overflow-auto flex-1">
                                 {/* Header Toko */}
                                 <div className="text-center mb-4">
                                     <div className="bg-theme-bg w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2 border border-theme-border/50">
@@ -1363,14 +1363,14 @@ export default function Dashboard({
                                     {receiptData.items?.map((item, i) => (
                                         <div
                                             key={i}
-                                            className="flex justify-between items-start"
+                                            className="flex justify-between items-start gap-2"
                                         >
-                                            <div className="flex items-center gap-2">
-                                                <div className="bg-theme-bg p-1.5 rounded flex items-center justify-center border border-theme-border/50">
+                                            <div className="flex items-center gap-2 min-w-0">
+                                                <div className="bg-theme-bg p-1.5 rounded flex items-center justify-center border border-theme-border/50 shrink-0">
                                                     <Package className="w-4 h-4 text-theme-accent" />
                                                 </div>
-                                                <div>
-                                                    <p className="text-sm font-medium text-theme-text">
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-medium text-theme-text truncate">
                                                         {item.product?.name}
                                                     </p>
                                                     <p className="text-xs text-theme-muted">
@@ -1379,7 +1379,7 @@ export default function Dashboard({
                                                     </p>
                                                 </div>
                                             </div>
-                                            <span className="text-sm font-medium text-theme-text">
+                                            <span className="text-sm font-medium text-theme-text shrink-0">
                                                 {formatRp(item.subtotal)}
                                             </span>
                                         </div>
@@ -1436,7 +1436,7 @@ export default function Dashboard({
                             </div>
 
                             {/* Tombol */}
-                            <div className="flex gap-3 px-6 pb-6">
+                            <div className="flex gap-3 px-4 sm:px-6 pb-4 sm:pb-6">
                                 <button
                                     onClick={() => {
                                         setReceiptData(null);
@@ -1450,8 +1450,49 @@ export default function Dashboard({
                                     onClick={printReceipt}
                                     className="flex-1 py-2.5 rounded-xl bg-theme-accent hover:bg-theme-accent-hover text-white text-sm font-semibold transition flex items-center justify-center gap-2 shadow"
                                 >
-                                    <Printer className="w-4 h-4 text-white" /> Cetak
+                                    <Printer className="w-4 h-4 text-white" />{" "}
+                                    Cetak
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Tombol Melayang Keranjang (mobile only) */}
+                {cart.length > 0 && !showMobileCart && (
+                    <button
+                        onClick={() => setShowMobileCart(true)}
+                        className="lg:hidden fixed bottom-4 left-4 right-4 z-40 bg-theme-accent hover:bg-theme-accent-hover text-white rounded-xl shadow-lg px-4 py-3.5 flex items-center justify-between active:scale-[0.98] transition"
+                    >
+                        <span className="flex items-center gap-2 font-semibold text-sm">
+                            <span className="bg-white/20 w-6 h-6 rounded-full flex items-center justify-center text-xs">
+                                {cart.length}
+                            </span>
+                            Lihat Keranjang
+                        </span>
+                        <span className="font-bold text-sm flex items-center gap-1">
+                            <ShoppingCart className="w-4 h-4" />
+                            {formatRp(subtotal)}
+                        </span>
+                    </button>
+                )}
+
+                {/* Bottom Sheet Keranjang (mobile only) */}
+                {showMobileCart && (
+                    <div className="lg:hidden fixed inset-0 z-50 flex items-end animate-fade-in">
+                        <div
+                            className="absolute inset-0 bg-black/70"
+                            onClick={() => setShowMobileCart(false)}
+                        />
+                        <div className="relative w-full bg-theme-panel rounded-t-2xl border-t border-theme-border shadow-2xl flex flex-col max-h-[88vh] text-theme-text animate-modal-pop">
+                            <div
+                                className="flex justify-center pt-2.5 pb-1 shrink-0 cursor-pointer"
+                                onClick={() => setShowMobileCart(false)}
+                            >
+                                <div className="w-10 h-1.5 bg-theme-border rounded-full" />
+                            </div>
+                            <div className="flex-1 min-h-0 flex flex-col">
+                                {cartContent}
                             </div>
                         </div>
                     </div>

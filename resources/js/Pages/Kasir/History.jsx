@@ -1,16 +1,16 @@
 import { Head, router } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import KasirNavbar from "@/Components/KasirNavbar";
-import { 
-    HelpCircle, 
-    Search, 
-    FileText, 
-    Printer, 
-    AlertTriangle, 
-    Wifi, 
-    ShoppingCart, 
+import {
+    HelpCircle,
+    Search,
+    FileText,
+    Printer,
+    AlertTriangle,
+    Wifi,
+    ShoppingCart,
     Phone,
-    WifiOff
+    WifiOff,
 } from "lucide-react";
 
 export default function History({ auth, transactions, kiosList, shifts }) {
@@ -58,8 +58,6 @@ export default function History({ auth, transactions, kiosList, shifts }) {
 
     // Gunakan cachedTransactions kalau offline
     const displayTransactions = isOnline ? transactions : cachedTransactions;
-
-
 
     const formatRp = (val) => "Rp " + Number(val).toLocaleString("id-ID");
     const formatDate = (val) =>
@@ -160,51 +158,56 @@ export default function History({ auth, transactions, kiosList, shifts }) {
         );
     };
 
-
-
     return (
         <>
             <Head title="Riwayat Transaksi" />
             {!isOnline && (
-                <div className="bg-yellow-900/80 border-b border-yellow-700 px-6 py-3 flex items-center gap-3 text-yellow-300 text-sm">
-                    <WifiOff className="w-4 h-4 text-yellow-400 shrink-0" />
+                <div className="bg-yellow-900/80 border-b border-yellow-700 px-4 sm:px-6 py-3 flex flex-wrap items-start sm:items-center gap-3 text-yellow-300 text-sm">
+                    <WifiOff className="w-4 h-4 text-yellow-400 shrink-0 mt-0.5 sm:mt-0" />
                     <span>
                         <strong>Mode Offline.</strong> Menampilkan data terakhir
                         yang tersimpan.
                     </span>
                 </div>
             )}
-            <div className="h-screen bg-theme-bg text-theme-text flex flex-col overflow-hidden">
+            <div className="min-h-screen lg:h-screen bg-theme-bg text-theme-text flex flex-col lg:overflow-hidden">
                 {/* Navbar */}
-                <KasirNavbar activeTab="history" isOnline={isOnline} onHelpClick={() => setShowHelpModal(true)} />
+                <KasirNavbar
+                    activeTab="history"
+                    isOnline={isOnline}
+                    onHelpClick={() => setShowHelpModal(true)}
+                />
 
                 {/* Content */}
-                <div className="flex-1 w-full max-w-[1440px] mx-auto flex flex-col overflow-hidden p-6">
+                <div className="flex-1 w-full max-w-[1440px] mx-auto flex flex-col overflow-y-auto lg:overflow-hidden p-4 sm:p-6">
                     {/* Title */}
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                         <div>
-                            <h1 className="text-xl font-bold text-theme-text">Riwayat Transaksi</h1>
+                            <h1 className="text-xl font-bold text-theme-text">
+                                Riwayat Transaksi
+                            </h1>
                             <p className="text-theme-muted text-sm">
                                 Semua transaksi yang telah diproses
                             </p>
                         </div>
                         <button
                             onClick={() => setShowHelpModal(true)}
-                            className="bg-theme-panel hover:bg-theme-border border border-theme-border text-theme-text font-semibold px-4 py-2 rounded-xl flex items-center gap-2 transition text-sm shadow-sm"
+                            className="self-start sm:self-auto bg-theme-panel hover:bg-theme-border border border-theme-border text-theme-text font-semibold px-4 py-2 rounded-xl flex items-center gap-2 transition text-sm shadow-sm whitespace-nowrap"
                         >
-                            <HelpCircle className="w-4 h-4 text-theme-muted" /> Panduan
+                            <HelpCircle className="w-4 h-4 text-theme-muted" />{" "}
+                            Panduan
                         </button>
                     </div>
 
                     {/* Filter */}
-                    <div className="flex gap-3 mb-5 flex-wrap">
+                    <div className="grid grid-cols-2 sm:flex gap-2 sm:gap-3 mb-5 sm:flex-wrap">
                         <select
                             value={filterKios}
                             onChange={(e) => {
                                 setFilterKios(e.target.value);
                             }}
                             onBlur={applyFilter}
-                            className="bg-theme-panel border border-theme-border text-sm rounded-lg pl-3 pr-8 py-2 text-theme-text outline-none focus:border-theme-accent"
+                            className="bg-theme-panel border border-theme-border text-sm rounded-lg pl-3 pr-8 py-2 text-theme-text outline-none focus:border-theme-accent w-full sm:w-auto"
                         >
                             <option value="">Semua Kios</option>
                             {kiosList.map((k) => (
@@ -220,7 +223,7 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                 setFilterShift(e.target.value);
                             }}
                             onBlur={applyFilter}
-                            className="bg-theme-panel border border-theme-border text-sm rounded-lg pl-3 pr-8 py-2 text-theme-text outline-none focus:border-theme-accent"
+                            className="bg-theme-panel border border-theme-border text-sm rounded-lg pl-3 pr-8 py-2 text-theme-text outline-none focus:border-theme-accent w-full sm:w-auto"
                         >
                             <option value="">Semua Shift</option>
                             {shifts.map((s) => (
@@ -236,7 +239,7 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                 setFilterMethod(e.target.value);
                             }}
                             onBlur={applyFilter}
-                            className="bg-theme-panel border border-theme-border text-sm rounded-lg pl-3 pr-8 py-2 text-theme-text outline-none focus:border-theme-accent"
+                            className="bg-theme-panel border border-theme-border text-sm rounded-lg pl-3 pr-8 py-2 text-theme-text outline-none focus:border-theme-accent w-full sm:w-auto"
                         >
                             <option value="">Semua Metode</option>
                             <option value="cash">Tunai</option>
@@ -245,14 +248,14 @@ export default function History({ auth, transactions, kiosList, shifts }) {
 
                         <button
                             onClick={applyFilter}
-                            className="bg-theme-accent hover:bg-theme-accent-hover text-white text-sm px-4 py-2 rounded-lg transition shadow-sm"
+                            className="col-span-2 sm:col-auto bg-theme-accent hover:bg-theme-accent-hover text-white text-sm px-4 py-2 rounded-lg transition shadow-sm w-full sm:w-auto"
                         >
                             Filter
                         </button>
                     </div>
 
-                    {/* Tabel */}
-                    <div className="flex-1 overflow-y-auto bg-theme-panel rounded-xl border border-theme-border overflow-hidden shadow-sm">
+                    {/* Tabel - tampil di layar medium ke atas */}
+                    <div className="hidden md:block flex-1 overflow-y-auto bg-theme-panel rounded-xl border border-theme-border overflow-hidden shadow-sm">
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-theme-border text-theme-muted text-xs uppercase bg-theme-bg/50">
@@ -365,6 +368,89 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                             </tbody>
                         </table>
                     </div>
+
+                    {/* List Kartu - tampil khusus mobile */}
+                    <div className="md:hidden flex-1 overflow-y-auto space-y-3">
+                        {displayTransactions.length === 0 ? (
+                            <div className="text-center py-10 text-theme-muted bg-theme-panel rounded-xl border border-theme-border text-sm">
+                                Belum ada transaksi
+                            </div>
+                        ) : (
+                            displayTransactions.map((trx) => (
+                                <div
+                                    key={trx.id}
+                                    className="bg-theme-panel rounded-xl border border-theme-border p-4 shadow-sm"
+                                >
+                                    <div className="flex items-start justify-between gap-2 mb-2.5">
+                                        <div className="min-w-0">
+                                            <p className="font-mono text-xs text-theme-muted truncate">
+                                                {trx.invoice_number}
+                                            </p>
+                                            <p className="text-xs text-theme-muted mt-0.5">
+                                                {formatDate(trx.created_at)}
+                                            </p>
+                                        </div>
+                                        <span
+                                            className={`text-xs flex items-center gap-1 font-semibold shrink-0 ${
+                                                trx.status === "cancelled"
+                                                    ? "text-red-500"
+                                                    : "text-green-500"
+                                            }`}
+                                        >
+                                            {trx.status === "cancelled"
+                                                ? "✕ Dibatalkan"
+                                                : "✓ Selesai"}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-theme-muted mb-3">
+                                        <span>
+                                            🏪{" "}
+                                            {trx.kasir_session?.kios?.name ??
+                                                "-"}
+                                        </span>
+                                        <span className="text-theme-border">
+                                            •
+                                        </span>
+                                        <span>
+                                            🕐{" "}
+                                            {trx.kasir_session?.shift?.name ??
+                                                "-"}
+                                        </span>
+                                        <span className="text-theme-border">
+                                            •
+                                        </span>
+                                        <span>{trx.items?.length} item</span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <span className="bg-green-900/10 text-green-500 border border-green-500/20 text-xs px-2 py-0.5 rounded-full flex items-center gap-1 font-medium shrink-0">
+                                                💵{" "}
+                                                {trx.payment_method === "cash"
+                                                    ? "Cash"
+                                                    : trx.payment_method ===
+                                                        "transfer"
+                                                      ? "Transfer"
+                                                      : "QRIS"}
+                                            </span>
+                                            <span className="font-bold text-theme-text text-sm truncate">
+                                                {formatRp(trx.total_amount)}
+                                            </span>
+                                        </div>
+                                        <button
+                                            onClick={() =>
+                                                setSelectedTransaction(trx)
+                                            }
+                                            className="bg-theme-bg border border-theme-border text-theme-accent hover:border-theme-accent text-xs px-3 py-1.5 rounded-lg transition shadow-sm font-medium shrink-0"
+                                        >
+                                            Detail
+                                        </button>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
                 </div>
 
                 {/* Modal Detail Transaksi */}
@@ -372,7 +458,7 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
                         <div className="bg-theme-panel rounded-2xl w-full max-w-lg border border-theme-border shadow-2xl flex flex-col max-h-[90vh] text-theme-text">
                             {/* Header */}
-                            <div className="flex items-center justify-between px-6 py-4 border-b border-theme-border shrink-0">
+                            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-theme-border shrink-0">
                                 <div className="flex items-center gap-2">
                                     <FileText className="w-5 h-5 text-theme-accent" />
                                     <span className="font-bold text-theme-text">
@@ -388,17 +474,17 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                             </div>
 
                             {/* Info Grid */}
-                            <div className="p-6 space-y-4 overflow-auto flex-1">
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="bg-theme-bg rounded-xl p-3 border border-theme-border/50 shadow-inner">
+                            <div className="p-4 sm:p-6 space-y-4 overflow-auto flex-1">
+                                <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+                                    <div className="bg-theme-bg rounded-xl p-2.5 sm:p-3 border border-theme-border/50 shadow-inner">
                                         <p className="text-xs text-theme-muted mb-1 font-semibold uppercase">
                                             ID TRANSAKSI
                                         </p>
-                                        <p className="text-sm font-mono font-medium text-theme-text">
+                                        <p className="text-sm font-mono font-medium text-theme-text break-all">
                                             {selectedTransaction.invoice_number}
                                         </p>
                                     </div>
-                                    <div className="bg-theme-bg rounded-xl p-3 border border-theme-border/50 shadow-inner">
+                                    <div className="bg-theme-bg rounded-xl p-2.5 sm:p-3 border border-theme-border/50 shadow-inner">
                                         <p className="text-xs text-theme-muted mb-1 font-semibold uppercase">
                                             WAKTU
                                         </p>
@@ -408,7 +494,7 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                             )}
                                         </p>
                                     </div>
-                                    <div className="bg-theme-bg rounded-xl p-3 border border-theme-border/50 shadow-inner">
+                                    <div className="bg-theme-bg rounded-xl p-2.5 sm:p-3 border border-theme-border/50 shadow-inner">
                                         <p className="text-xs text-theme-muted mb-1 font-semibold uppercase">
                                             KIOS
                                         </p>
@@ -417,7 +503,7 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                                 ?.kios?.name ?? "-"}
                                         </p>
                                     </div>
-                                    <div className="bg-theme-bg rounded-xl p-3 border border-theme-border/50 shadow-inner">
+                                    <div className="bg-theme-bg rounded-xl p-2.5 sm:p-3 border border-theme-border/50 shadow-inner">
                                         <p className="text-xs text-theme-muted mb-1 font-semibold uppercase">
                                             SHIFT
                                         </p>
@@ -426,7 +512,7 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                                 ?.shift?.name ?? "-"}
                                         </p>
                                     </div>
-                                    <div className="bg-theme-bg rounded-xl p-3 border border-theme-border/50 shadow-inner">
+                                    <div className="bg-theme-bg rounded-xl p-2.5 sm:p-3 border border-theme-border/50 shadow-inner">
                                         <p className="text-xs text-theme-muted mb-1 font-semibold uppercase">
                                             KASIR
                                         </p>
@@ -434,7 +520,7 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                             {selectedTransaction.user?.name}
                                         </p>
                                     </div>
-                                    <div className="bg-theme-bg rounded-xl p-3 border border-theme-border/50 shadow-inner">
+                                    <div className="bg-theme-bg rounded-xl p-2.5 sm:p-3 border border-theme-border/50 shadow-inner">
                                         <p className="text-xs text-theme-muted mb-1 font-semibold uppercase">
                                             METODE
                                         </p>
@@ -458,8 +544,8 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                     <p className="text-sm font-semibold mb-2 text-theme-text">
                                         Detail Item
                                     </p>
-                                    <div className="bg-theme-bg rounded-xl overflow-hidden border border-theme-border/50">
-                                        <table className="w-full text-xs">
+                                    <div className="bg-theme-bg rounded-xl overflow-hidden border border-theme-border/50 overflow-x-auto">
+                                        <table className="w-full text-xs min-w-[420px] sm:min-w-0">
                                             <thead>
                                                 <tr className="border-b border-theme-border text-theme-muted bg-theme-panel/30">
                                                     <th className="px-3 py-2 text-left">
@@ -526,9 +612,7 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                         </span>
                                     </div>
                                     <div className="flex justify-between text-theme-muted text-xs mt-1">
-                                        <span>
-                                            Dibayar
-                                        </span>
+                                        <span>Dibayar</span>
                                         <span className="text-theme-text">
                                             {formatRp(
                                                 selectedTransaction.paid_amount,
@@ -536,9 +620,7 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                         </span>
                                     </div>
                                     <div className="flex justify-between text-theme-accent font-semibold mt-1">
-                                        <span>
-                                            Kembalian
-                                        </span>
+                                        <span>Kembalian</span>
                                         <span className="text-theme-accent font-bold">
                                             {formatRp(
                                                 selectedTransaction.change_amount,
@@ -548,7 +630,7 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                 </div>
                             </div>
 
-                            <div className="px-6 pb-6 space-y-2 shrink-0 border-t border-theme-border pt-4">
+                            <div className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-2 shrink-0 border-t border-theme-border pt-4">
                                 {selectedTransaction.status !== "cancelled" && (
                                     <button
                                         onClick={() =>
@@ -584,9 +666,9 @@ export default function History({ auth, transactions, kiosList, shifts }) {
 
                 {/* Modal Konfirmasi Batalkan */}
                 {selectedTransaction && showCancelConfirm && (
-                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-6">
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4 sm:p-6">
                         <div className="bg-theme-panel rounded-2xl w-full max-w-xs border border-theme-border shadow-2xl overflow-hidden text-theme-text">
-                            <div className="p-6 flex flex-col items-center text-center">
+                            <div className="p-5 sm:p-6 flex flex-col items-center text-center">
                                 <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-4 text-2xl">
                                     ⚠️
                                 </div>
@@ -595,9 +677,11 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                 </p>
                                 <p className="text-theme-muted text-xs mt-2 leading-relaxed">
                                     Transaksi{" "}
-                                    <strong className="text-theme-text">{selectedTransaction.invoice_number}</strong> akan
-                                    dibatalkan. Stok akan dikembalikan secara
-                                    otomatis.
+                                    <strong className="text-theme-text">
+                                        {selectedTransaction.invoice_number}
+                                    </strong>{" "}
+                                    akan dibatalkan. Stok akan dikembalikan
+                                    secara otomatis.
                                 </p>
                             </div>
                             <div className="flex border-t border-theme-border">
@@ -639,7 +723,7 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
                         <div className="bg-theme-panel rounded-2xl w-full max-w-lg border border-theme-border max-h-[85vh] flex flex-col text-theme-text shadow-2xl">
                             {/* Header */}
-                            <div className="flex items-center justify-between p-5 border-b border-theme-border shrink-0">
+                            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-theme-border shrink-0">
                                 <div className="flex items-center gap-3">
                                     <HelpCircle className="w-6 h-6 text-theme-accent" />
                                     <h2 className="text-lg font-bold text-theme-text">
@@ -655,7 +739,7 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                             </div>
 
                             {/* Isi Panduan - Scrollable */}
-                            <div className="overflow-y-auto p-5 space-y-4 text-theme-text">
+                            <div className="overflow-y-auto p-4 sm:p-5 space-y-4 text-theme-text">
                                 <div className="flex gap-3">
                                     <FileText className="w-5 h-5 text-theme-accent shrink-0 mt-0.5" />
                                     <div>
@@ -678,8 +762,12 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                             2. Menyaring (Filter) Transaksi
                                         </p>
                                         <p className="text-theme-muted text-sm mt-1">
-                                            Gunakan pilihan <strong>Kios</strong>, <strong>Shift</strong>, atau <strong>Metode Bayar</strong> di
-                                            bagian atas tabel, lalu tekan tombol <strong>"Filter"</strong> untuk
+                                            Gunakan pilihan{" "}
+                                            <strong>Kios</strong>,{" "}
+                                            <strong>Shift</strong>, atau{" "}
+                                            <strong>Metode Bayar</strong> di
+                                            bagian atas tabel, lalu tekan tombol{" "}
+                                            <strong>"Filter"</strong> untuk
                                             mempersempit hasil pencarian.
                                             Contoh: mau lihat transaksi Tunai
                                             shift pagi saja.
@@ -694,7 +782,8 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                             3. Melihat Detail Transaksi
                                         </p>
                                         <p className="text-theme-muted text-sm mt-1">
-                                            Tekan tombol <strong>"Detail"</strong> pada baris
+                                            Tekan tombol{" "}
+                                            <strong>"Detail"</strong> pada baris
                                             transaksi yang ingin dilihat. Akan
                                             muncul rincian barang yang dibeli,
                                             total, uang dibayar, dan kembalian.
@@ -709,9 +798,10 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                             4. Cetak Ulang Struk
                                         </p>
                                         <p className="text-theme-muted text-sm mt-1">
-                                            Di jendela Detail Transaksi, tekan <strong>"Cetak Struk"</strong>{" "}
-                                            kalau pelanggan minta struk lagi
-                                            atau struk sebelumnya hilang.
+                                            Di jendela Detail Transaksi, tekan{" "}
+                                            <strong>"Cetak Struk"</strong> kalau
+                                            pelanggan minta struk lagi atau
+                                            struk sebelumnya hilang.
                                         </p>
                                     </div>
                                 </div>
@@ -723,17 +813,22 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                             5. Membatalkan Transaksi
                                         </p>
                                         <p className="text-theme-muted text-sm mt-1">
-                                            Di jendela Detail Transaksi, tekan <strong className="text-red-500">"Batalkan Transaksi"</strong>{" "}
+                                            Di jendela Detail Transaksi, tekan{" "}
+                                            <strong className="text-red-500">
+                                                "Batalkan Transaksi"
+                                            </strong>{" "}
                                             kalau ada kesalahan input. Akan
-                                            muncul konfirmasi — tekan <strong>"Batalkan"</strong> untuk
+                                            muncul konfirmasi — tekan{" "}
+                                            <strong>"Batalkan"</strong> untuk
                                             memastikan. Stok barang otomatis
                                             dikembalikan.
                                             <br />
                                             <span className="text-theme-muted flex items-center gap-1 mt-1">
-                                                <AlertTriangle className="w-3.5 h-3.5 text-theme-accent" /> Transaksi yang sudah
-                                                dibatalkan tidak bisa diaktifkan
-                                                lagi. Pastikan yakin sebelum
-                                                menekan tombol ini.
+                                                <AlertTriangle className="w-3.5 h-3.5 text-theme-accent" />{" "}
+                                                Transaksi yang sudah dibatalkan
+                                                tidak bisa diaktifkan lagi.
+                                                Pastikan yakin sebelum menekan
+                                                tombol ini.
                                             </span>
                                         </p>
                                     </div>
@@ -746,7 +841,10 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                             6. Kalau Internet Mati
                                         </p>
                                         <p className="text-theme-muted text-sm mt-1">
-                                            Muncul tulisan <strong className="text-theme-accent">"Mode Offline"</strong>{" "}
+                                            Muncul tulisan{" "}
+                                            <strong className="text-theme-accent">
+                                                "Mode Offline"
+                                            </strong>{" "}
                                             di atas halaman. Kamu tetap bisa
                                             melihat riwayat transaksi terakhir
                                             yang tersimpan, tapi data terbaru
@@ -763,7 +861,8 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                                             7. Kembali ke Halaman Kasir
                                         </p>
                                         <p className="text-theme-muted text-sm mt-1">
-                                            Tekan tombol <strong>"Kasir"</strong> di pojok
+                                            Tekan tombol{" "}
+                                            <strong>"Kasir"</strong> di pojok
                                             kiri atas untuk kembali melayani
                                             transaksi baru.
                                         </p>
@@ -786,7 +885,7 @@ export default function History({ auth, transactions, kiosList, shifts }) {
                             </div>
 
                             {/* Footer */}
-                            <div className="p-5 border-t border-theme-border shrink-0">
+                            <div className="p-4 sm:p-5 border-t border-theme-border shrink-0">
                                 <button
                                     onClick={() => setShowHelpModal(false)}
                                     className="w-full bg-theme-accent hover:bg-theme-accent-hover text-white font-bold py-3 rounded-lg transition"

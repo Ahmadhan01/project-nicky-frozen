@@ -9,6 +9,8 @@ import {
     Sun,
     Moon,
     Lock,
+    Menu,
+    X,
 } from "lucide-react";
 
 export default function KasirNavbar({ activeTab, isOnline, onHelpClick }) {
@@ -17,6 +19,7 @@ export default function KasirNavbar({ activeTab, isOnline, onHelpClick }) {
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [isLight, setIsLight] = useState(false);
     const [showOfflineWarning, setShowOfflineWarning] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         setIsLight(document.documentElement.classList.contains("light"));
@@ -41,7 +44,7 @@ export default function KasirNavbar({ activeTab, isOnline, onHelpClick }) {
     const logout = () => router.post(route("logout"));
 
     return (
-        <nav className="bg-theme-panel border-b border-theme-border">
+        <nav className="bg-theme-panel border-b border-theme-border relative">
             <div className="max-w-[1440px] mx-auto px-6 py-3 flex items-center justify-between">
                 {/* Brand Logo */}
                 <div className="flex items-center gap-2">
@@ -64,8 +67,8 @@ export default function KasirNavbar({ activeTab, isOnline, onHelpClick }) {
                     </div>
                 </div>
 
-                {/* Navigation tabs */}
-                <div className="flex items-center gap-2">
+                {/* Navigation tabs - DESKTOP VIEW (hidden di mobile, flex di lg) */}
+                <div className="hidden lg:flex items-center gap-2">
                     <button
                         onClick={() => {
                             if (!isOnline) {
@@ -115,8 +118,8 @@ export default function KasirNavbar({ activeTab, isOnline, onHelpClick }) {
                     </button>
                 </div>
 
-                {/* Right info & Profile */}
-                <div className="flex items-center gap-3">
+                {/* Right info & Profile - DESKTOP VIEW (hidden di mobile, flex di lg) */}
+                <div className="hidden lg:flex items-center gap-3">
                     <button
                         onClick={toggleTheme}
                         className="p-2 rounded-lg text-theme-muted hover:text-theme-text hover:bg-theme-border/50 active:scale-95 transition-all duration-200"
@@ -190,13 +193,142 @@ export default function KasirNavbar({ activeTab, isOnline, onHelpClick }) {
                         )}
                     </div>
                 </div>
+
+                {/* Hamburger Toggle Button - MOBILE VIEW ONLY (block di mobile, hidden di lg) */}
+                <div className="flex items-center lg:hidden gap-2">
+                    {/* Theme toggle ditaruh luar agar mudah diakses di mobile */}
+                    <button
+                        onClick={toggleTheme}
+                        className="p-2 rounded-lg text-theme-muted hover:text-theme-text hover:bg-theme-border/50"
+                    >
+                        {isLight ? (
+                            <Moon className="w-5 h-5" />
+                        ) : (
+                            <Sun className="w-5 h-5" />
+                        )}
+                    </button>
+
+                    <button
+                        onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+                        className="p-2 rounded-lg text-theme-muted hover:text-theme-text hover:bg-theme-border/50 transition-colors"
+                    >
+                        {isMobileMenuOpen ? (
+                            <X className="w-6 h-6" />
+                        ) : (
+                            <Menu className="w-6 h-6" />
+                        )}
+                    </button>
+                </div>
             </div>
+
+            {/* Mobile Dropdown Content Menu (Hanya tampil saat hamburger aktif di mobile) */}
+            {isMobileMenuOpen && (
+                <div className="lg:hidden border-t border-theme-border bg-theme-panel px-6 py-4 space-y-4 animate-fade-in">
+                    {/* Status & Jam */}
+                    <div className="flex items-center justify-between border-b border-theme-border pb-3">
+                        <span
+                            className={`text-xs px-2.5 py-1 rounded-full flex items-center gap-1 ${
+                                isOnline
+                                    ? "bg-green-900/80 text-green-400"
+                                    : "bg-red-900/80 text-red-400"
+                            }`}
+                        >
+                            ● {isOnline ? "Online" : "Offline"}
+                        </span>
+                        <span className="text-sm text-theme-muted font-medium">
+                            Jam:{" "}
+                            {time.toLocaleTimeString("id-ID", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            })}
+                        </span>
+                    </div>
+
+                    {/* Navigasi Utama */}
+                    <div className="flex flex-col gap-2">
+                        <button
+                            onClick={() => {
+                                setIsMobileMenuOpen(false);
+                                if (!isOnline)
+                                    localStorage.setItem(
+                                        "nicky_offline_nav",
+                                        "true",
+                                    );
+                                router.visit(route("kasir.dashboard"));
+                            }}
+                            className={`w-full px-4 py-3 rounded-xl text-sm flex items-center gap-3 transition-all ${
+                                activeTab === "kasir"
+                                    ? "bg-theme-border text-theme-accent font-semibold"
+                                    : "text-theme-muted hover:bg-theme-border/10 text-theme-text"
+                            }`}
+                        >
+                            <ShoppingCart className="w-5 h-5" />
+                            Kasir
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                setIsMobileMenuOpen(false);
+                                if (!isOnline) {
+                                    setShowOfflineWarning(true);
+                                    setTimeout(
+                                        () => setShowOfflineWarning(false),
+                                        4000,
+                                    );
+                                    return;
+                                }
+                                router.visit(route("kasir.history"));
+                            }}
+                            className={`w-full px-4 py-3 rounded-xl text-sm flex items-center gap-3 transition-all ${
+                                !isOnline
+                                    ? "text-theme-muted/30 cursor-not-allowed"
+                                    : activeTab === "history"
+                                      ? "bg-theme-border text-theme-accent font-semibold"
+                                      : "text-theme-muted hover:bg-theme-border/10 text-theme-text"
+                            }`}
+                        >
+                            {!isOnline ? (
+                                <Lock className="w-5 h-5 text-theme-muted/30" />
+                            ) : (
+                                <History className="w-5 h-5" />
+                            )}
+                            Riwayat
+                        </button>
+                    </div>
+
+                    {/* Informasi Pengguna & Logout */}
+                    <div className="pt-4 border-t border-theme-border flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 bg-theme-accent text-white rounded-full flex items-center justify-center font-bold">
+                                {auth.user.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <p className="text-sm font-semibold text-theme-text leading-none">
+                                    {auth.user.name}
+                                </p>
+                                <span className="text-[10px] bg-theme-accent/20 text-theme-accent px-1.5 py-0.5 rounded-full mt-1 inline-block capitalize">
+                                    {auth.user.role}
+                                </span>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={logout}
+                            className="p-2.5 bg-red-900/20 text-red-400 hover:bg-red-900/40 rounded-xl transition flex items-center gap-2 text-sm font-medium"
+                        >
+                            <LogOut className="w-4 h-4" />
+                            Keluar
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {showOfflineWarning && (
-            <div className="fixed top-16 left-1/2 -translate-x-1/2 bg-yellow-900/90 border border-yellow-700 text-yellow-300 text-sm px-4 py-2.5 rounded-xl shadow-lg z-[999] flex items-center gap-2 animate-fade-in">
-                <Lock className="w-4 h-4 text-yellow-400 shrink-0" />
-                Riwayat butuh koneksi internet. Sambungkan dulu, ya.
-            </div>
-        )}
+                <div className="fixed top-16 left-1/2 -translate-x-1/2 bg-yellow-900/90 border border-yellow-700 text-yellow-300 text-sm px-4 py-2.5 rounded-xl shadow-lg z-[999] flex items-center gap-2 animate-fade-in">
+                    <Lock className="w-4 h-4 text-yellow-400 shrink-0" />
+                    Riwayat butuh koneksi internet. Sambungkan dulu, ya.
+                </div>
+            )}
         </nav>
     );
 }
